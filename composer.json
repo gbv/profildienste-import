@@ -1,0 +1,18 @@
+{
+  "require": {
+    "nategood/commando": "*",
+    "monolog/monolog": "*",
+    "phpmailer/phpmailer": "~5.2"
+  },
+  "autoload": {
+    "psr-0": {
+      "": "src/"
+    }
+  },
+  "bin": ["bin/pd-import"],
+  "extra": {
+    "phar": {
+      "bundler": "composer"
+    }
+  }
+}
