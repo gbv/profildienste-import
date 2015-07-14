@@ -12,14 +12,18 @@ class Log {
     private static $instance;
 
     private $log;
+
     private $logpath;
+
 
     private static $verbose;
 
     private function __construct(){
         $this->log = new Logger('Importer');
+
         $this->logpath = Config::getInstance()->getValue('logging', 'dir', true).'Import_'.date('d-m-y_H-i-s').'.log';
         $this->log->pushHandler(new StreamHandler($this->logpath, Logger::INFO));
+
         if(Log::$verbose){
             $this->log->pushHandler(new ErrorLogHandler());
         }
