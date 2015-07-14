@@ -30,7 +30,7 @@ class Initializer implements Importer{
             ),
             'logging' => array(
                 'dir' => getcwd().'/log',
-                'mail' => 'keidel@gbv.de',
+                'mail' => array('keidel@gbv.de'),
                 'enable_mail' => true
             ),
             'cover' => array(
@@ -44,6 +44,12 @@ class Initializer implements Importer{
                     'safe'    => true,
                     'fsync'   => true,
                     'timeout' => 10000
+                )
+            ),
+            'mailer' => array(
+                'enable' => true,
+                'mapping' => array(
+                    '000' => array('keidel@gbv.de')
                 )
             ),
             'firstrun' => true
@@ -165,13 +171,19 @@ class Initializer implements Importer{
 
             // check if the mail is valid
             if($config->getValue('logging', 'enable_mail')){
-                echo "\n\nChecking if the log email is valid...";
-                if(filter_var($config->getValue('logging', 'mail'),FILTER_VALIDATE_EMAIL)){
-                    echo "Yes!\n";
-                }else{
-                    echo "Invalid email!\n";
-                    exit(6);
+                echo "\n\nChecking if the log emails are valid...\n";
+                $emails = $config->getValue('logging', 'mail');
+                foreach($emails as $email){
+                    echo "\t ".$email." ... ";
+                    if(filter_var($email ,FILTER_VALIDATE_EMAIL)){
+                        echo "Valid!\n";
+                    }else{
+                        echo "Invalid email!\n";
+                        exit(6);
+                    }
                 }
+                echo "\n";
+
             }
 
             // cover check

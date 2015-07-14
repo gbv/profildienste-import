@@ -1,3 +1,11 @@
 vendor/*
 composer.lock
 .idea/*
+*.phar
+config.json
+title_import/
+title_update/
+temp/
+user_update/
+user_import/
+log/

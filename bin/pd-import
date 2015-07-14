@@ -9,5 +9,4 @@ if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
     exit(1);
 }
 
-$app = new App();
-$app->run();
+App::getInstance()->run();

@@ -9,6 +9,12 @@ class TitleImporter implements Importer{
     private $total = 0;
     private $fails = 0;
 
+    private $mailer;
+
+    public function __construct(){
+        $this->mailer = App::getInstance()->getMailer();
+    }
+
     public function run(){
 
         $log = Log::getInstance()->getLog();
@@ -28,6 +34,8 @@ class TitleImporter implements Importer{
             $f = Config::getInstance()->getValue('dirs', 'title_import', true).$file;
             if ($file !== '.' && $file !== '..' && pathinfo($f, PATHINFO_EXTENSION) === 'json') {
 
+                $this-> total++;
+
                 $d=json_decode(file_get_contents($f), true);
                 if (is_null($d)){
                     $log->addWarning($f.' is not a valid json file');
@@ -37,6 +45,7 @@ class TitleImporter implements Importer{
                 $d['_id']=isset($d['006G']['0'])? $d['006G']['0'] : NULL;
                 if (is_null($d['_id'])){
                     rename($f, Config::getInstance()->getValue('dirs', 'temp', true).'fail/'.$file);
+                    $log->addWarning($f.' has no ID (Field 006G/0)!');
                     $this->fails++;
                     continue;
                 }
@@ -56,7 +65,9 @@ class TitleImporter implements Importer{
                     $db->insertTitle($d);
                     rename($f, Config::getInstance()->getValue('dirs', 'temp', true).$file);
                     $log->addInfo($f.' ok.');
-                    $this-> total++;
+                    foreach($d['XX01'] as $user){
+                        $this->mailer->addTitle($user);
+                    }
                 } catch (\MongoCursorException $mce) {
                     $log->addError($mce);
                     rename($f, Config::getInstance()->getValue('dirs', 'temp', true).'fail/'.$file);

@@ -44,7 +44,7 @@ class CoverImporter implements Importer{
     }
 
     public function getWithoutCover(){
-        return $this->checked;
+        return $this->withoutCover;
     }
 
     public function getWithCover(){

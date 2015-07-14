@@ -2,13 +2,37 @@
 
 use Util\Log;
 use Util\Config;
+use Util\Mailer;
 
 class App{
 
-    public function run(){
+    private static $instance;
+
+    private $mailer;
+
+    private function __construct(){
 
         $init = new Initializer();
         $init->run();
+
+        $this->mailer = new Mailer();
+    }
+
+    public static function getInstance(){
+
+        if(is_null(App::$instance)){
+            App::$instance = new App();
+        }
+
+        return App::$instance;
+    }
+
+    public function getMailer(){
+        return $this->mailer;
+    }
+
+
+    public function run(){
 
         $config = Config::getInstance();
 
@@ -70,11 +94,13 @@ class App{
             $full = true;
         }
 
+        $r = null;
         if ($full || $cmd['remote']){
             $r = new RemoteFetcher();
             $r->run();
         }
 
+        $t = null;
         if ($full || $cmd['import-titles']){
             $t = new TitleImporter();
             $t->run();
@@ -84,42 +110,76 @@ class App{
             $log->addInfo('Title Updater not implemented so far!');
         }
 
+        $c = null;
         if ($full || $cmd['covers']){
             $c = new CoverImporter();
             $c->run();
         }
 
+        $u = null;
         if ($full || $cmd['import-users']){
             $u = new UserImporter();
             $u->run();
         }
 
+        $uu = null;
         if ($full || $cmd['update-users']){
             $uu = new UserUpdater();
             $uu->run();
         }
 
+
+        if($config->getValue('mailer', 'enable')){
+            $mapping = $config->getValue('mailer', 'mapping');
+
+            foreach($mapping as $user => $emails){
+                foreach($emails as $email){
+                    $this->mailer->sendMailTo($user, $email);
+                }
+
+            }
+        }
+
         if($config->getValue('logging', 'enable_mail')) {
 
-            if($t->getTotal() > 0 || $u->getTotal() > 0 || $uu->getTotal() > 0 || $c->getChecked() > 0) {
+            $titles = is_null($t) ? -1 : $t->getTotal();
+            $titlesFailed = is_null($t) ? -1 : $t->getFails();
+
+            $titleUpdates = -1;
+            $titleUpdatesFailed = -1;
+
+            $users = is_null($u) ? -1 : $u->getTotal();
+            $usersFailed = is_null($u) ? -1 : $u->getFails();
+
+            $userUpdates = is_null($uu) ? -1 : $uu->getTotal();
+            $userUpdatesFailed = is_null($uu) ? -1 : $uu->getFails();
+
+            $covers= is_null($c) ? -1 : $c->getChecked();
+            $coversWithout= is_null($c) ? -1 : $c->getWithoutCover();
+
+            if($titles > 0 || $users > 0 || $userUpdates > 0 || $covers > 0 || $titlesFailed > 0 || $usersFailed > 0 || $userUpdatesFailed > 0 || $coversWithout > 0){
 
                 $msg = "Summary: \n";
-                $msg .= "Imported titles: " . $t->getTotal() . " (failed: " . $t->getFails() . ")\n";
-                $msg .= "Updated titles: " . '-' . " (failed: " . '-' . ")\n";
+                $msg .= "Imported titles: " . $this->format($titles) . " (failed: " . $this->format($titlesFailed) . ")\n";
+                $msg .= "Updated titles: " . $this->format($titleUpdates) . " (failed: " . $this->format($titleUpdatesFailed) . ")\n";
                 $msg .= "\n";
-                $msg .= "Imported users: " . $u->getTotal() . " (failed: " . $u->getFails() . ")\n";
-                $msg .= "Updated users: " . $uu->getTotal() . " (failed: " . $uu->getFails() . ")\n";
+                $msg .= "Imported users: " . $this->format($users) . " (failed: " . $this->format($usersFailed) . ")\n";
+                $msg .= "Updated users: " . $this->format($userUpdates) . " (failed: " . $this->format($userUpdatesFailed) . ")\n";
                 $msg .= "\n";
-                $msg .= "Covers checked: " . $c->getChecked() . " (without a cover: " . $c->getWithoutCover() . ")\n";
+                $msg .= "Covers checked: " . $this->format($covers) . " (without a cover: " . $this->format($coversWithout) . ")\n";
 
 
                 $mail = new PHPMailer();
 
                 $mail->From = 'import@online-profildienst.gbv.de';
                 $mail->FromName = 'Profildienst Import';
-                $mail->addAddress($config->getValue('logging', 'mail'));
 
-                $mail->addAttachment($log->getLogPath(), 'Log.log');
+                $emails = $config->getValue('logging', 'mail');
+                foreach($emails as $email) {
+                    $mail->addAddress($email);
+                }
+
+                $mail->addAttachment(Log::getInstance()->getLogPath(), 'Log.log');
 
                 $mail->Subject = 'Import finished!';
                 $mail->Body = $msg;
@@ -135,6 +195,10 @@ class App{
                 $log->addInfo('No email sent since nothing happened.');
             }
         }
+    }
+
+    private function format($val){
+        return ($val >= 0) ? $val : '-';
     }
 
 }
