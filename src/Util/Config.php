@@ -34,11 +34,7 @@ class Config {
                 exit(5);
             }
 
-            if($checkForTrailingSlash){
-                return substr($this->config[$category], strlen($this->config[$category]) - 1, 1) === '/' ? $this->config[$category] : $this->config[$category].'/';
-            }else{
-                return $this->config[$category];
-            }
+            return $checkForTrailingSlash ? Util::addTrailingSlash($this->config[$category]) : $this->config[$category];
 
         }else{
             if(!isset($this->config[$category]) || !isset($this->config[$category][$key])){
@@ -46,11 +42,7 @@ class Config {
                 exit(5);
             }
 
-            if($checkForTrailingSlash){
-                return substr($this->config[$category][$key], strlen($this->config[$category][$key]) - 1, 1) === '/' ? $this->config[$category][$key] : $this->config[$category][$key].'/';
-            }else{
-                return $this->config[$category][$key];
-            }
+            return $checkForTrailingSlash ? Util::addTrailingSlash($this->config[$category][$key]) : $this->config[$category][$key];
         }
     }
 

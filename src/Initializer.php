@@ -2,6 +2,7 @@
 
 use Util\Config;
 use Util\Database;
+use Util\Util;
 
 class Initializer implements Importer{
 
@@ -19,7 +20,10 @@ class Initializer implements Importer{
                 'enable' => true,
                 'host' => 'cbs4.gbv.de',
                 'user' => 'cbs_ifd',
-                'dir' => '/export/home/cbs_ifd/andreas/profildienst/sub_goettingen/export/'
+                'dirs' => [
+                    '/export/home/cbs_ifd/andreas/profildienst/sub_goettingen/export/',
+                    '/export/home/cbs_ifd/andreas/profildienst/wildau/export/'
+                ]
             ),
             'dirs' => array(
                 'title_import' => getcwd().'/title_import',
@@ -143,20 +147,28 @@ class Initializer implements Importer{
                 unset($ret);
 
                 //try to connect
-                echo "\n\nTrying to connect to the remote server...\n";
+                echo "\n\nTrying to connect to the remote server and checking if remote directories exist...\n";
+                $dirs = $config->getValue('remote', 'dirs');
+                foreach ($dirs as $dir){
 
-                exec('ssh '.$config->getValue('remote', 'user').'@'.$config->getValue('remote', 'host').' stat '.$config->getValue('remote', 'dir', true).' 2>&1', $output, $ret);
+                    $dir = Util::addTrailingSlash($dir);
 
-                if($ret == 0){
-                    echo "OK! Everything went fine, connecting is possible and the remote dir exists.\n";
-                }else{
-                    echo "FAIL! An error occured: \n";
-                    foreach($output as $line){
-                        echo "\t> ".$line."\n";
+                    exec('ssh '.$config->getValue('remote', 'user').'@'.$config->getValue('remote', 'host').' stat '.$dir.' 2>&1', $output, $ret);
+
+                    if($ret == 0){
+                        echo "\t> ".$dir.": OK! \n";
+                    }else{
+                        echo "\t> ".$dir.": FAIL! An error occured: \n";
+                        foreach($output as $line){
+                            echo "\t\t> ".$line."\n";
+                        }
+                        echo "\nPlease check your configuration and the remote server.\n";
+                        exit(6);
                     }
-                    echo "\nPlease check your configuration and the remote server.\n";
-                    exit(6);
                 }
+
+                echo "OK! Everything went fine, connecting is possible and the remote directories exist.\n";
+
             }
 
             //check if all dirs exist
@@ -187,7 +199,7 @@ class Initializer implements Importer{
             }
 
             // cover check
-            // TODO: Cover check
+            // TODO: Cover Check
 
             //disable check on next run
             $config->setFirstRun();
