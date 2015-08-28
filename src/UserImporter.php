@@ -86,7 +86,7 @@ class UserImporter implements Importer{
                 }
 
                 $id = $d['ID']['0'];
-                $isil = $d['ISIL'];
+                $isil = $d['ISIL']['0'];
 
                 $dataset= array(
                     '_id' => $id,

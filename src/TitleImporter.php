@@ -42,10 +42,10 @@ class TitleImporter implements Importer{
                     continue;
                 }
 
-                $d['_id']=isset($d['006G']['0'])? $d['006G']['0'] : NULL;
+                $d['_id']=isset($d['003@']['0'])? $d['003@']['0'] : NULL;
                 if (is_null($d['_id'])){
                     rename($f, Config::getInstance()->getValue('dirs', 'temp', true).'fail/'.$file);
-                    $log->addWarning($f.' has no ID (Field 006G/0)!');
+                    $log->addWarning($f.' has no ID (Field 003@/0)!');
                     $this->fails++;
                     continue;
                 }
