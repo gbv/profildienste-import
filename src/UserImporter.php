@@ -91,17 +91,13 @@ class UserImporter implements Importer{
                 $dataset= array(
                     '_id' => $id,
                     'budgets' => $d['BUDGETS'],
-                    'cart' => array(),
                     'price' => array('price' => 0, 'est' => 0, 'known' => 0),
-                    'rejected' => array() ,
                     'wl_default' => '1' ,
                     'wl_order' => array('1'),
-                    'watchlist' => array( '1' => array('id' => 1, 'name' => 'Meine Merkliste', 'list' => array())),
-                    'done' => array(),
+                    'watchlist' => array('1' => array('id' => 1, 'name' => 'Meine Merkliste')),
                     'isil' => $isil,
                     'defaults' => $d['DEFAULTS'],
                     'settings' => array('sortby' => 'erj', 'order' => 'desc' ,'pagesize' => 10),
-                    'pending' => array()
                 );
 
                 try{

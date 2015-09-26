@@ -42,8 +42,8 @@ class TitleImporter implements Importer{
                     continue;
                 }
 
-                $d['_id']=isset($d['003@']['0'])? $d['003@']['0'] : NULL;
-                if (is_null($d['_id'])){
+                $ppn = isset($d['003@']['0'])? $d['003@']['0'] : NULL;
+                if (is_null($ppn)){
                     rename($f, Config::getInstance()->getValue('dirs', 'temp', true).'fail/'.$file);
                     $log->addWarning($f.' has no ID (Field 003@/0)!');
                     $this->fails++;
@@ -61,27 +61,42 @@ class TitleImporter implements Importer{
 
                 $d['XX02']=NULL;
 
-                try {
-                    $db->insertTitle($d);
-                    rename($f, Config::getInstance()->getValue('dirs', 'temp', true).$file);
-                    $log->addInfo($f.' ok.');
-                    foreach($d['XX01'] as $user){
-                        $this->mailer->addTitle($user);
-                    }
-                } catch (\MongoCursorException $mce) {
-                    $log->addError($mce);
-                    rename($f, Config::getInstance()->getValue('dirs', 'temp', true).'fail/'.$file);
-                    $this->fails++;
-                } catch (\MongoCursorTimeoutException $mcte) {
-                    $log->addError('Timeout-Error: '.$mcte);
-                    rename($f, Config::getInstance()->getValue('dirs', 'temp', true).'fail/'.$file);
-                    $this->fails++;
-                }
+                foreach ($d['XX01'] as $user) {
 
+                    $d['_id'] = $ppn . '_' . $user;
+
+                    //enrich title data
+                    $d['user'] = $user;
+                    $d['status'] = 'normal';
+                    $d['comment'] = NULL;
+                    $d['ssgnr'] = NULL;
+                    $d['selcode'] = NULL;
+                    $d['budget'] = NULL;
+                    $d['lieft'] = NULL;
+                    $d['watchlist'] = NULL;
+                    $d['rejected'] = NULL;
+
+                    try {
+                        $db->insertTitle($d);
+                        rename($f, Config::getInstance()->getValue('dirs', 'temp', true) . $file);
+                        $log->addInfo($f . ' ok.');
+                        $this->mailer->addTitle($user);
+                    } catch (\MongoCursorException $mce) {
+                        $log->addError($mce);
+                        rename($f, Config::getInstance()->getValue('dirs', 'temp', true) . 'fail/' . $file);
+                        $this->fails++;
+                    } catch (\MongoCursorTimeoutException $mcte) {
+                        $log->addError('Timeout-Error: ' . $mcte);
+                        rename($f, Config::getInstance()->getValue('dirs', 'temp', true) . 'fail/' . $file);
+                        $this->fails++;
+                    }
+                }
             }
         }
 
         closedir($handle);
+
+        $count = ($this->total - $this->fails);
 
         if($count > 0){
 
