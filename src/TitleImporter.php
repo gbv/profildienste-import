@@ -29,6 +29,9 @@ class TitleImporter implements Importer{
             return;
         }
 
+        //setup title temp directory
+        Config::getInstance()->setupTitleTempDir();
+
         while (($file = readdir($handle)) !== false) {
 
             $f = Config::getInstance()->getValue('dirs', 'title_import', true).$file;
@@ -61,6 +64,8 @@ class TitleImporter implements Importer{
 
                 $d['XX02']=NULL;
 
+
+                $err = false;
                 foreach ($d['XX01'] as $user) {
 
                     $d['_id'] = $ppn . '_' . $user;
@@ -74,22 +79,27 @@ class TitleImporter implements Importer{
                     $d['budget'] = NULL;
                     $d['lieft'] = NULL;
                     $d['watchlist'] = NULL;
-                    $d['rejected'] = NULL;
+                    $d['lastStatusChange'] = new \MongoDate();
 
                     try {
                         $db->insertTitle($d);
-                        rename($f, Config::getInstance()->getValue('dirs', 'temp', true) . $file);
                         $log->addInfo($f . ' ok.');
                         $this->mailer->addTitle($user);
                     } catch (\MongoCursorException $mce) {
                         $log->addError($mce);
-                        rename($f, Config::getInstance()->getValue('dirs', 'temp', true) . 'fail/' . $file);
+                        $err = true;
                         $this->fails++;
                     } catch (\MongoCursorTimeoutException $mcte) {
                         $log->addError('Timeout-Error: ' . $mcte);
-                        rename($f, Config::getInstance()->getValue('dirs', 'temp', true) . 'fail/' . $file);
+                        $err = true;
                         $this->fails++;
                     }
+                }
+
+                if($err){
+                    rename($f, Config::getInstance()->getTempSaveDir(true) . 'titles/fail/' . $file);
+                }else{
+                    rename($f, Config::getInstance()->getTempSaveDir(true) . 'titles/' . $file);
                 }
             }
         }
