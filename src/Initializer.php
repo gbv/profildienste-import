@@ -35,7 +35,8 @@ class Initializer implements Importer{
             'logging' => array(
                 'dir' => getcwd().'/log',
                 'mail' => array('keidel@gbv.de'),
-                'enable_mail' => true
+                'enable_mail' => true,
+                'max_mailsize' => 1000000
             ),
             'cover' => array(
                 'access' => 'AKIAJ7PKU5XHAWG65IRQ',

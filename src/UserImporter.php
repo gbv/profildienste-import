@@ -12,13 +12,15 @@ class UserImporter implements Importer{
     public function run(){
 
         $log = Log::getInstance()->getLog();
-        $db = Database::getInstance();
 
         $handle = opendir(Config::getInstance()->getValue('dirs', 'user_import'));
         if ($handle === false) {
             $log->addError('Opening directory ' . Config::getInstance()->getValue('dirs', 'user_import') . 'failed!');
             return;
         }
+
+        //setup title temp directory
+        Config::getInstance()->setupUserTempDir();
 
         while (($file = readdir($handle)) !== false) {
 
@@ -103,10 +105,10 @@ class UserImporter implements Importer{
                 try{
                     Database::getInstance()->insertUser($dataset);
                     $log->addInfo('Import successful: '.$f);
-                    rename($f, Config::getInstance()->getValue('dirs', 'temp', true).$file);
+                    rename($f, Config::getInstance()->getTempSaveDir(true) . 'user/' . $file);
                 }catch(\Exception $e){
                     $log->addError('Error importing user: '.$e->getMessage());
-                    rename($f, Config::getInstance()->getValue('dirs', 'temp', true).'fail/'.$file);
+                    rename($f, Config::getInstance()->getTempSaveDir(true) . 'user/fail/' . $file);
                 }
 
             }

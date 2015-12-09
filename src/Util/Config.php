@@ -66,4 +66,10 @@ class Config {
             mkdir(Util::addTrailingSlash($this->temp_path).'/titles/fail', 0777, true);
         }
     }
+
+    public function setupUserTempDir(){
+        if(!is_dir($this->getTempSaveDir(true))){
+            mkdir(Util::addTrailingSlash($this->temp_path).'/user/fail', 0777, true);
+        }
+    }
 }

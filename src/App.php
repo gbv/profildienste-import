@@ -179,7 +179,14 @@ class App{
                     $mail->addAddress($email);
                 }
 
-                $mail->addAttachment(Log::getInstance()->getLogPath(), 'Log.log');
+                if (filesize(Log::getInstance()->getLogPath()) > $config->getValue('logging','max_mailsize')){
+                    $mail->addAttachment(Log::getInstance()->getLogPath(), 'Log.log');
+                }else{
+                    $msg.= "\n";
+                    $msg.= "A log file has been generated, but it is too big to be attached.";
+                    $msg.= "It can be found here: ".Log::getInstance()->getLogPath()."\n";
+                }
+
 
                 $mail->Subject = 'Import finished!';
                 $mail->Body = $msg;

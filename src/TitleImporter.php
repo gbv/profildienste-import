@@ -42,13 +42,15 @@ class TitleImporter implements Importer{
                 $d=json_decode(file_get_contents($f), true);
                 if (is_null($d)){
                     $log->addWarning($f.' is not a valid json file');
+                    rename($f, Config::getInstance()->getTempSaveDir(true) . 'titles/fail/' . $file);
+                    $this->fails++;
                     continue;
                 }
 
                 $ppn = isset($d['003@']['0'])? $d['003@']['0'] : NULL;
                 if (is_null($ppn)){
-                    rename($f, Config::getInstance()->getValue('dirs', 'temp', true).'fail/'.$file);
                     $log->addWarning($f.' has no ID (Field 003@/0)!');
+                    rename($f, Config::getInstance()->getTempSaveDir(true) . 'titles/fail/' . $file);
                     $this->fails++;
                     continue;
                 }
