@@ -99,15 +99,7 @@ class Initializer implements Importer{
         if($config->getValue('firstrun')){
             echo "This appears to be your first run of the import.\n";
             echo "I will check the configuration and create the directories if the do not already exist.\n\n";
-
-            echo "Checking if the PHP Mongo extension is available... ";
-            if(extension_loaded("mongo")){
-                echo "Yes!\n\n";
-            }else{
-                echo "No. Please install it.\n";
-                exit(7);
-            }
-
+            
             echo "Trying to connect to the database... ";
             try{
                 Database::getInstance();

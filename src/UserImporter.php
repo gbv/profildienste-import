@@ -52,11 +52,21 @@ class UserImporter implements Importer{
                     continue;
                 }
 
-                if(!$this->checkField($d, 'DEFAULTS', 'lieft')){
-                    $log->addWarning($f . ' is missing DEFAULTS/lieft field');
+                if(!$this->checkField($d, 'SUPPLIERS')){
+                    $log->addWarning($f . ' is missing SUPPLIERS field');
                     rename($f, Config::getInstance()->getValue('dirs', 'temp', true).'fail/'.$file);
                     $this->fails++;
                     continue;
+                }
+
+                // check each supplier
+                foreach ($d['SUPPLIERS'] as $supplier){
+                    if (empty($supplier['name']) || empty($supplier['value'])){
+                        $log->addWarning($f . ' has an incomplete suppliers entry: '. print_r($supplier, true));
+                        rename($f, Config::getInstance()->getValue('dirs', 'temp', true).'fail/'.$file);
+                        $this->fails++;
+                        continue;
+                    }
                 }
 
                 if(!$this->checkField($d, 'DEFAULTS', 'budget')){
@@ -90,17 +100,24 @@ class UserImporter implements Importer{
                 $id = $d['ID']['0'];
                 $isil = $d['ISIL']['0'];
 
-                $dataset= array(
+                $dataset= [
                     '_id' => $id,
                     'budgets' => $d['BUDGETS'],
-                    'price' => array('price' => 0, 'est' => 0, 'known' => 0),
-                    'wl_default' => '1' ,
-                    'wl_order' => array('1'),
-                    'watchlist' => array('1' => array('id' => 1, 'name' => 'Meine Merkliste')),
+                    'suppliers' => $d['SUPPLIERS'],
+                    'watchlists' => [
+                        [
+                            'id' => uniqid(),
+                            'name' => 'Meine Merkliste',
+                            'default' => true
+                        ]
+                    ],
                     'isil' => $isil,
                     'defaults' => $d['DEFAULTS'],
-                    'settings' => array('sortby' => 'erj', 'order' => 'desc' ,'pagesize' => 10),
-                );
+                    'settings' => [
+                        'sortby' => 'erj',
+                        'order' => 'desc'
+                    ]
+                ];
 
                 try{
                     Database::getInstance()->insertUser($dataset);

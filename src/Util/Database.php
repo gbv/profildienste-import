@@ -2,24 +2,27 @@
 
 namespace Util;
 
+use MongoDB\Client;
+
 class Database {
 
     private static $instance;
-
-    private $db;
-
+    
     private $titles;
     private $users;
     private $data;
 
     private function __construct(){
         $config = Config::getInstance();
-        $m = new \MongoClient('mongodb://'.$config->getValue('database', 'host').':'.$config->getValue('database', 'port'));
-        $this -> db = $m->selectDB('pd');
 
-        $this->titles = new \MongoCollection($this -> db, 'titles');
-        $this->users = new \MongoCollection($this -> db, 'users');
-        $this->data = new \MongoCollection($this -> db, 'data');
+        $client = new Client('mongodb://'.$config->getValue('database', 'host').':'.$config->getValue('database', 'port'));
+        $db = $client->selectDatabase('pd');
+
+        var_dump($client->listDatabases());
+
+        $this->titles = $db->selectCollection('titles');
+        $this->users = $db->selectCollection('users');
+        $this->data = $db->selectCollection('data');
     }
 
     public static function getInstance(){
@@ -31,7 +34,7 @@ class Database {
     }
 
     public function insertTitle($title){
-        $this->titles->insert($title, Config::getInstance()->getValue('database', 'options'));
+        $this->titles->insertOne($title, Config::getInstance()->getValue('database', 'options'));
     }
 
     public function updateTitle($title){
@@ -39,19 +42,19 @@ class Database {
     }
 
     public function updateCover($title, $cover){
-        $this->titles->update(
-            array('_id' => $title['_id']),
+        $this->titles->updateOne(
+            ['_id' => $title['_id']],
             array('$set' => array('XX02' => $cover)),
             Config::getInstance()->getValue('database', 'options')
         );
     }
 
     public function insertUser($user){
-        $this->users->insert($user, Config::getInstance()->getValue('database', 'options'));
+        $this->users->insertOne($user, Config::getInstance()->getValue('database', 'options'));
     }
 
     public function updateUser($id, $upd){
-        $this->users->update(array('_id' => $id), $upd , Config::getInstance()->getValue('database', 'options'));
+        $this->users->updateOne(array('_id' => $id), $upd , Config::getInstance()->getValue('database', 'options'));
     }
 
     public function getGlobalPrice(){
@@ -63,11 +66,11 @@ class Database {
     }
 
     public function insertData($d){
-        $this->data->insert($d, Config::getInstance()->getValue('database', 'options'));
+        $this->data->insertOne($d, Config::getInstance()->getValue('database', 'options'));
     }
 
     public function updateData($value, $data){
-        $this->data->update(
+        $this->data->updateOne(
             array('_id' => $value),
             array('$set' => array('value' => $data)) ,
             Config::getInstance()->getValue('database', 'options')
