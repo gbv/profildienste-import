@@ -3,10 +3,10 @@
 /**
  * TODO: Auf Format einigen, neu schreiben
  */
-class TitleUpdater implements Importer{
+class TitleUpdater extends Importer{
 
     public function run(){
-
+/*
         $log = Log::getInstance()->getLog();
         $db = Database::getInstance();
 
@@ -41,10 +41,10 @@ class TitleUpdater implements Importer{
                 }
 
             }
-        }
+        }*/
     }
 
-    private function handleTitle($id, $user, $status){
+/*    private function handleTitle($id, $user, $status){
 
         $pending = $this -> users -> findOne(array('_id' => $user), array('pending' => 1));
         $done = $this -> users -> findOne(array('_id' => $user), array('done' => 1));
@@ -84,5 +84,24 @@ class TitleUpdater implements Importer{
             throw new \Exception('Aktualisieren nicht erfolgreich!');
         }
 
+    }*/
+
+    /**
+     * Returns the total amount of processed records
+     *
+     * @return int total amount
+     */
+    public function getTotal() {
+        // TODO: Implement getTotal() method.
+    }
+
+    /**
+     * Returns the number of records which could not be
+     * imported.
+     *
+     * @return int failed records
+     */
+    public function getFails() {
+        // TODO: Implement getFails() method.
     }
 }
