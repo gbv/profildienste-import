@@ -84,7 +84,7 @@ abstract class JSONDirImporter extends Importer {
      * Handler for valid data
      *
      * @param $data
-     * @return mixed
+     * @return void
      */
     public abstract function handleData($data);
 

@@ -63,6 +63,9 @@ class UserUpdaterTest extends \BaseTest {
 
         $data['budgets'] = [['name' => 'foo', 'value' => 'bar']];
         $this->assertFalse($this->userUpdater->validate($data));
+
+        $data['budgets'] = [['name' => 'foo', 'value' => 'bar', 'default' => true, 'extraValue' => 'notAllowed']];
+        $this->assertFalse($this->userUpdater->validate($data));
     }
 
     public function testValidateSuppliersInvalidItems() {
@@ -118,7 +121,7 @@ class UserUpdaterTest extends \BaseTest {
         $this->assertFalse($this->userUpdater->validate($data));
 
         $data['defaults'] = [
-            'ssgnr' => null
+            'ssgnr' => ''
         ];
         $this->assertFalse($this->userUpdater->validate($data));
     }

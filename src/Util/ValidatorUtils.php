@@ -32,6 +32,11 @@ trait ValidatorUtils {
                 }
             }
 
+            // check if the item only contains the allowed fields
+            if (array_keys($item) != ['name', 'value', 'default']) {
+                return false;
+            }
+
             $keys[] = $item['name'];
         }
 
@@ -47,6 +52,14 @@ trait ValidatorUtils {
         return true;
     }
 
+    protected function checkIfAllFieldsExist($data, $fields) {
+        return array_reduce(array_map(function ($field) use ($data) {
+            return isset($data[$field]) && !empty($data[$field]) && is_string($data[$field]);
+        }, $fields), function ($carry, $item) {
+            return $carry && $item;
+        }, false);
+    }
+
     protected function checkIfAnyFieldExists($data, $fields) {
         return array_reduce(array_map(function ($field) use ($data) {
             return isset($data[$field]) && !empty($data[$field]) && is_string($data[$field]);
@@ -60,6 +73,14 @@ trait ValidatorUtils {
             return isset($data[$field]) && is_array($data[$field]) && count($data[$field]) > 0;
         }, $fields), function ($carry, $item) {
             return $carry || $item;
+        }, false);
+    }
+
+    protected function checkIfAllSubfieldsExist($data, $fields) {
+        return array_reduce(array_map(function ($field) use ($data) {
+            return isset($data[$field]) && is_array($data[$field]) && count($data[$field]) > 0;
+        }, $fields), function ($carry, $item) {
+            return $carry && $item;
         }, false);
     }
 

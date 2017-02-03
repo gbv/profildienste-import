@@ -51,7 +51,7 @@ class UserUpdater extends JSONDirImporter {
 
         // check the defaults field
         if (isset($data['defaults'])){
-            if (!$this->checkIfAnyFieldExists($data, ['selcode', 'ssgnr'])) {
+            if (!$this->checkIfAllFieldsExist($data, ['selcode', 'ssgnr'])) {
                 $this->handleError($this->currentFile, $this->currentFile . ' has an error in the defaults field.');
                 return false;
             }
@@ -64,10 +64,19 @@ class UserUpdater extends JSONDirImporter {
      * Handler for valid data
      *
      * @param $data
-     * @return mixed
+     * @return void
      */
     public function handleData($data) {
-        // TODO: Implement handleData() method.
+
+        $query = ['$set' => []];
+
+        foreach (['budgets', 'suppliers', 'defaults'] as $field) {
+            if (isset($field)) {
+                $query['$set'][$field] = $data[$field];
+            }
+        }
+
+        $this->database->updateUser($data['id'], $query);
     }
 
     /**
