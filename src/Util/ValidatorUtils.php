@@ -3,6 +3,14 @@
 namespace Util;
 
 
+/**
+ * Class ValidatorUtils
+ *
+ * This traits contains all kind of utility functions which can be used
+ * by Importers for validating the input data.
+ *
+ * @package Util
+ */
 trait ValidatorUtils {
 
     protected function checkNameValueListSubfield($data, $field, $checkForDefault = true) {
@@ -33,7 +41,8 @@ trait ValidatorUtils {
             }
 
             // check if the item only contains the allowed fields
-            if (array_keys($item) != ['name', 'value', 'default']) {
+            $allKeys = array_keys($item);
+            if ($allKeys != ['name', 'value'] && $allKeys  != ['name', 'value', 'default']) {
                 return false;
             }
 
@@ -52,12 +61,12 @@ trait ValidatorUtils {
         return true;
     }
 
-    protected function checkIfAllFieldsExist($data, $fields) {
+    protected function checkIfAllFieldsExist($data, $fields, $exclusively = false) {
         return array_reduce(array_map(function ($field) use ($data) {
             return isset($data[$field]) && !empty($data[$field]) && is_string($data[$field]);
         }, $fields), function ($carry, $item) {
             return $carry && $item;
-        }, false);
+        }, true) && (!$exclusively || array_keys($data) == $fields);
     }
 
     protected function checkIfAnyFieldExists($data, $fields) {
@@ -76,12 +85,12 @@ trait ValidatorUtils {
         }, false);
     }
 
-    protected function checkIfAllSubfieldsExist($data, $fields) {
+    protected function checkIfAllSubfieldsExist($data, $fields, $exclusively = false) {
         return array_reduce(array_map(function ($field) use ($data) {
             return isset($data[$field]) && is_array($data[$field]) && count($data[$field]) > 0;
         }, $fields), function ($carry, $item) {
             return $carry && $item;
-        }, false);
+        }, true)  && (!$exclusively || array_keys($data) == $fields);
     }
 
 

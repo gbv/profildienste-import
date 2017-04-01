@@ -4,7 +4,7 @@ namespace Cover;
 
 use Config\Config;
 use Util\ISBNtest;
-use Util\Log;
+use Services\LogService;
 
 /**
  * Class Amazon
@@ -13,18 +13,18 @@ use Util\Log;
  *
  * @package Cover
  */
-class Amazon implements CoverService {
+class Amazon implements CoverProvider  {
 
     private $config;
-    private $logger;
+    private $logService;
 
     private $log;
 
-    public function __construct(Config $config, Log $log) {
+    public function __construct(Config $config, LogService $logService) {
         $this->config = $config;
-        $this->logger = $log;
+        $this->logService = $logService;
 
-        $this->log = $this->logger->getLog();
+        $this->log = $this->logService->getLog();
     }
 
     public function getCovers($title) {

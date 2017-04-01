@@ -1,30 +1,36 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: luca
- * Date: 14.07.15
- * Time: 16:28
- */
 
-namespace Util;
+namespace Services;
 
 use Config\Config;
+use Monolog\Logger;
 use PHPMailer;
+use Util\Util;
 
-class Mailer {
+class MailerService {
 
     private $record = [];
 
-    private $logger;
+    /**
+     * @var LogService
+     */
+    private $logService;
+
+    /**
+     * @var Config
+     */
     private $config;
 
+    /**
+     * @var Logger
+     */
     private $log;
 
-    public function __construct(Log $log, Config $config) {
-        $this->logger = $log;
+    public function __construct(LogService $logService, Config $config) {
+        $this->logService = $logService;
         $this->config = $config;
 
-        $this->log = $this->logger->getLog();
+        $this->log = $this->logService->getLog();
     }
 
 
@@ -107,12 +113,12 @@ class Mailer {
                 $mail->addAddress($email);
             }
 
-            if (filesize($this->logger->getLogPath()) < $this->config->getValue('logging', 'max_mailsize')) {
-                $mail->addAttachment($this->logger->getLogPath(), 'Log.log');
+            if (filesize($this->logService->getLogPath()) < $this->config->getValue('logging', 'max_mailsize')) {
+                $mail->addAttachment($this->logService->getLogPath(), 'Log.log');
             } else {
                 $msg .= "\n";
                 $msg .= "A log file has been generated, but it is too big to be attached.";
-                $msg .= "It can be found here: " . $this->logger->getLogPath() . "\n";
+                $msg .= "It can be found here: " . $this->logService->getLogPath() . "\n";
             }
 
 
@@ -130,7 +136,7 @@ class Mailer {
         }
     }
 
-    public function sendErrorMail($errors) {
+    public function sendErrorMail($addresses, $errors) {
         // TODO
     }
 

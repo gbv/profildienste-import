@@ -4,9 +4,8 @@ namespace Importer;
 
 use Config\Config;
 use Monolog\Logger;
-use Pimple\Container;
-use Util\Database;
-use Util\Log;
+use Services\LogService;
+use Services\DatabaseService;
 
 /**
  * Interface Importer
@@ -22,26 +21,26 @@ abstract class Importer{
     protected $config;
 
     /**
-     * @var Log
+     * @var LogService
      */
-    protected $logger;
+    protected $logService;
 
     /**
-     * @var Database
+     * @var DatabaseService
      */
     protected $database;
 
     /**
-     * @var Logger logger
+     * @var Logger log
      */
     protected $log;
 
-    public function __construct(Container $container){
-        $this->config = $container['config'];
-        $this->logger = $container['log'];
-        $this->database = $container['database'];
+    public function __construct(Config $config, LogService $logService, DatabaseService $databaseService){
+        $this->config = $config;
+        $this->logService = $logService;
+        $this->database = $databaseService;
 
-        $this->log = $this->logger->getLog();
+        $this->log = $this->logService->getLog();
     }
 
     /**

@@ -1,13 +1,13 @@
 <?php
 
-namespace Util;
+namespace Services;
 
 use Config\Config;
 use Exception;
 use MongoDB\Client;
 use MongoDB\Driver\Exception\ConnectionTimeoutException;
 
-class Database {
+class DatabaseService {
 
     private $config;
 

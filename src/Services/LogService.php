@@ -1,13 +1,13 @@
 <?php
 
-namespace Util;
+namespace Services;
 
 use Config\Config;
+use Monolog\Logger;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
-use Monolog\Logger;
 
-class Log {
+class LogService {
 
     private $log;
     private $logPath;

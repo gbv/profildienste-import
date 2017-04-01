@@ -2,9 +2,11 @@
 namespace Importer;
 
 
-use Pimple\Container;
 use Util\Util;
+use Config\Config;
+use Services\LogService;
 use Util\ValidatorUtils;
+use Services\DatabaseService;
 
 /**
  * Class JSONDirImporter
@@ -24,9 +26,11 @@ abstract class JSONDirImporter extends Importer {
     protected $fails;
 
     protected $currentFile;
+    protected $currentFilePath;
 
-    public function __construct(Container $container) {
-        parent::__construct($container);
+    public function __construct(Config $config, LogService $logService, DatabaseService $databaseService, string $dir) {
+        parent::__construct($config, $logService, $databaseService);
+        $this->dir = $dir;
     }
 
     /**
@@ -53,11 +57,12 @@ abstract class JSONDirImporter extends Importer {
             if ($file !== '.' && $file !== '..' && pathinfo($f, PATHINFO_EXTENSION) === 'json') {
 
                 $this->currentFile = $file;
+                $this->currentFilePath = $f;
 
                 $this->total++;
                 $d = json_decode(file_get_contents($f), true);
                 if (is_null($d)) {
-                    $this->handleError($f, $f . ' is not a valid json file');
+                    $this->handleError($f . ' is not a valid json file');
                     continue;
                 }
 
@@ -75,7 +80,7 @@ abstract class JSONDirImporter extends Importer {
      * has a all required attributes with correct
      * values. Has to return true if the data is valid.
      *
-     * @param $data The dataset
+     * @param $data array dataset
      * @return boolean Result of validation
      */
     public abstract function validate($data);
@@ -91,12 +96,11 @@ abstract class JSONDirImporter extends Importer {
     /**
      * Error handler for invalid or unparseable files.
      *
-     * @param $fileName
      * @param $reason
      * @param null $data
      * @return void
      */
-    public abstract function handleError($fileName, $reason, $data = null);
+    public abstract function handleError($reason, $data = null);
 
     /**
      * This function will be called after handling all JSON files in the

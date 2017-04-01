@@ -1,7 +1,10 @@
 <?php
+namespace Importer;
 
-use Cover\CoverService;
-use Pimple\Container;
+use Config\Config;
+use Services\LogService;
+use Cover\CoverProvider;
+use Services\DatabaseService;
 
 /**
  * Class CoverImporter
@@ -11,9 +14,9 @@ use Pimple\Container;
 class CoverImporter extends Importer {
 
     /**
-     * @var CoverService The actual Cover provider which should be used
+     * @var CoverProvider The actual Cover provider which should be used
      */
-    private $coverService;
+    private $coverProvider;
 
     /**
      * @var int Stores how many titles have been checked for covers
@@ -27,11 +30,14 @@ class CoverImporter extends Importer {
 
     /**
      * CoverImporter constructor.
-     * @param Container $container
+     * @param Config $config
+     * @param LogService $logService
+     * @param DatabaseService $databaseService
+     * @param CoverProvider $coverProvider
      */
-    public function __construct(Container $container) {
-        parent::__construct($container);
-        $this->coverService = $container['coverService'];
+    public function __construct(Config $config, LogService $logService, DatabaseService $databaseService, CoverProvider $coverProvider) {
+        parent::__construct($config, $logService, $databaseService);
+        $this->coverProvider = $coverProvider;
     }
 
     public function run() {
@@ -42,7 +48,7 @@ class CoverImporter extends Importer {
 
             $this->checked++;
 
-            $covers = $this->coverService->getCovers($d);
+            $covers = $this->coverProvider->getCovers($d);
 
             if (!$covers) {
                 $this->withoutCover++;

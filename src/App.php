@@ -15,10 +15,10 @@ class App {
     public function __construct(Container $container) {
         $this->container = $container;
 
-        $this->validator = $container['validator'];
-        $this->log = $container['log'];
-        $this->config = $container['config'];
-        $this->mailer = $container['mailer'];
+        $this->validator = $container['validatorService'];
+        $this->log = $container['logService'];
+        $this->config = $container['configService'];
+        $this->mailer = $container['mailerService'];
     }
 
     public function run() {
@@ -93,14 +93,14 @@ class App {
         if ($fullRun || $cmd['import-users']) {
             $importers[] = [
                 'id' => 'import-users',
-                'step' => new UserImporter($this->container)
+                'step' => null
             ];
         }
 
         if ($fullRun || $cmd['update-users']) {
             $importers[] = [
                 'id' => 'update-users',
-                'step' => new UserUpdater($this->container)
+                'step' => $this->container['userUpdater']
             ];
         }
 

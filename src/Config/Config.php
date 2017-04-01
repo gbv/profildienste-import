@@ -11,22 +11,28 @@ class Config {
 
     private $config;
 
+    private $configFromFile;
+
     private $temp_path;
 
-    public function __construct(ConfigCreator $creator) {
+    private static $baseDir;
 
-        // Try to create a configuration file if non exists so far
-        if (!file_exists(self::$CONFIG_FILENAME)) {
-            $creator->createConfigFile(self::$CONFIG_FILENAME, $this->getDefaultConfig());
+    public function __construct() {
+
+        $this->config = self::getDefaultConfig();
+
+        // If there is a config file, try to load it and merge with the default configuration
+        $configPath = self::getBaseDir().DIRECTORY_SEPARATOR.self::$CONFIG_FILENAME;
+        if (file_exists($configPath)) {
+
+            $this->configFromFile = json_decode(file_get_contents($configPath), true);
+
+            if (is_null($this->config)) {
+                throw new Exception("Invalid configuration JSON file. Please check the configuration.\n");
+            }
+
+            $this->config = Util::array_merge_recursive_distinct($this->config, $this->configFromFile);
         }
-
-        $this->config = json_decode(file_get_contents(self::$CONFIG_FILENAME), true);
-
-        if (is_null($this->config)) {
-            throw new Exception("Invalid configuration JSON file. Please check the configuration.\n");
-        }
-
-
     }
 
     // sample configuration written if none is present
@@ -39,14 +45,14 @@ class Config {
                 'dirs' => []
             ],
             'dirs' => [
-                'title_import' => getcwd() . '/title_import',
-                'title_update' => getcwd() . '/title_update',
-                'user_import' => getcwd() . '/user_import',
-                'user_update' => getcwd() . '/user_update',
-                'temp' => getcwd() . '/temp'
+                'title_import' => self::getBaseDir() . '/title_import',
+                'title_update' => self::getBaseDir() . '/title_update',
+                'user_import' => self::getBaseDir() . '/user_import',
+                'user_update' => self::getBaseDir() . '/user_update',
+                'temp' => self::getBaseDir() . '/temp'
             ],
             'logging' => [
-                'dir' => getcwd() . '/log',
+                'dir' => self::getBaseDir() . '/log',
                 'mail' => ['keidel@gbv.de'],
                 'enable_mail' => true,
                 'max_mailsize' => 1000000
@@ -88,10 +94,12 @@ class Config {
         }
     }
 
-    public function setFirstRun() {
+    public function firstRunCompleted() {
         $this->config['firstrun'] = false;
-        if (file_put_contents(self::$CONFIG_FILENAME, json_encode($this->config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) === false) {
-            throw new Exception('Couldn\'t write to config file!');
+        if (!is_null($this->configFromFile)) {
+            if (file_put_contents(self::$CONFIG_FILENAME, json_encode($this->config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) === false) {
+                throw new Exception('Couldn\'t write to config file!');
+            }
         }
     }
 
@@ -108,6 +116,14 @@ class Config {
 
     public function getTitlesFailDir() {
         return Util::createDir($this->getTitlesDir() . 'fail');
+    }
+
+    public static function setBaseDir($dir) {
+        self::$baseDir = $dir;
+    }
+
+    public static function getBaseDir() {
+        return self::$baseDir ?? getcwd();
     }
 
 }

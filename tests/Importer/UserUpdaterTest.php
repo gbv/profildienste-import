@@ -3,10 +3,13 @@ namespace Importer;
 
 class UserUpdaterTest extends \BaseTest {
 
+    /**
+     * @var UserUpdater
+     */
     private $userUpdater;
 
     public function setUp() {
-        $this->userUpdater = new UserUpdater($this->container);
+        $this->userUpdater = $this->container['userUpdater'];
     }
 
     public function testValidateEmptyData() {
@@ -15,6 +18,7 @@ class UserUpdaterTest extends \BaseTest {
     }
 
     public function testValidateIdNotString() {
+
         $data = [
             'id' => ['foo']
         ];
@@ -126,9 +130,9 @@ class UserUpdaterTest extends \BaseTest {
         $this->assertFalse($this->userUpdater->validate($data));
     }
 
-    public function validateValidDataset() {
+    public function testValidateValidDataset() {
         $data = [
-            'id' => 'XXXX',
+            'id' => '9706',
             'budgets' => [
                 ['name' => 'XXX', 'value' => 'YYY', 'default' => true],
                 ['name' => 'ZZZ', 'value' => 'AAA']

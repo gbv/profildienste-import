@@ -3,14 +3,14 @@
 namespace Cover;
 
 /**
- * Interface CoverService
+ * Interface CoverProvider
  *
  * All wrappers for the APIs of external cover providers
  * have to implement this interface
  *
  * @package Cover
  */
-interface CoverService {
+interface CoverProvider {
 
     /**
      * Get the covers for the given title.
