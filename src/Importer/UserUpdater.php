@@ -1,4 +1,5 @@
 <?php
+
 namespace Importer;
 
 /**
@@ -73,7 +74,7 @@ class UserUpdater extends JSONDirImporter {
 
         $this->database->updateUser($data['id'], $query);
 
-        $this->log->addInfo('User ' . $data['id'].' imported!');
+        $this->log->addInfo('User ' . $data['id'] . ' imported!');
         rename($this->currentFilePath, $this->config->getValue('dirs', 'temp', true) . 'user/' . $this->currentFile);
         $this->total++;
     }
@@ -88,7 +89,7 @@ class UserUpdater extends JSONDirImporter {
     public function handleError($reason, $data = null) {
         $this->log->addWarning($reason);
         if (!is_null($this->currentFilePath)) {
-            rename($this->currentFilePath, $this->config->getValue('dirs', 'temp', true) . 'fail / ' . $this->currentFile);
+            rename($this->currentFilePath, $this->config->getUsersFailDir() . $this->currentFile);
         }
         $this->fails++;
     }

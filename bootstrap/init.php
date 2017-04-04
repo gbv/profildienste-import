@@ -12,7 +12,7 @@ use Services\ValidatorService;
 
 function initContainer(\Pimple\Container $container) {
     $container['config'] = function ($container) {
-        return new Config($container['configCreator']);
+        return new Config();
     };
 
     $container['mailerService'] = function ($container) {
@@ -21,10 +21,6 @@ function initContainer(\Pimple\Container $container) {
 
     $container['logService'] = function ($container) {
         return new LogService($container['config']);
-    };
-
-    $container['configCreator'] = function ($container) {
-        return new ConfigCreator();
     };
 
     $container['databaseService'] = function ($container) {

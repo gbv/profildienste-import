@@ -1,6 +1,7 @@
 <?php
 
 use Commando\Command;
+use Config\Config;
 use Pimple\Container;
 
 class App {
@@ -26,6 +27,13 @@ class App {
         $cmd = new Command();
         $this->initCommands($cmd);
 
+        //check if there is a config file, otherwise create one first.
+        if (!file_exists(Config::getConfigFilePath())) {
+            Config::createConfigFile();
+            fprintf(STDOUT, "A configuration file template has been copied to %s.\nPlease review the configuration to make sure it can be used.\n", Config::getConfigFilePath());
+            return;
+        }
+
         $this->validator->checkEnvironment();
 
         $this->log->addInfo(print_r($cmd->getFlagValues(), true));
@@ -41,19 +49,19 @@ class App {
             ];
         }
 
-        if($this->config->getValue('mailer', 'enable')){
+        if ($this->config->getValue('mailer', 'enable')) {
 
             $mapping = $this->config->getValue('mailer', 'mapping');
 
-            foreach($mapping as $user => $emails){
-                foreach($emails as $email){
+            foreach ($mapping as $user => $emails) {
+                foreach ($emails as $email) {
                     $this->mailer->sendMailTo($user, $email);
                 }
 
             }
         }
 
-        if($this->config->getValue('logging', 'enable_mail')) {
+        if ($this->config->getValue('logging', 'enable_mail')) {
             $this->mailer->sendReportMail($stats);
         }
     }

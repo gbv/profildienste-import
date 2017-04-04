@@ -11,13 +11,13 @@ class Util {
     }
 
     public static function addTrailingSlash($path) {
-        return rtrim($path, '/') . '/';
+        return rtrim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
     }
 
     public static function checkAndCreateDir($path) {
 
         if (is_dir($path)) {
-            return null;
+            return true;
         }
 
         if (mkdir($path, 0777, true)) {

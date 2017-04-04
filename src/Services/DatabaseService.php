@@ -38,7 +38,7 @@ class DatabaseService {
     }
 
     public function insertTitle($title) {
-        $this->titles->insertOne($title, $this->config->getValue('database', 'options'));
+        $this->titles->insertOne($title);
     }
 
     public function updateTitle($title) {

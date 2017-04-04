@@ -81,7 +81,7 @@ class UserImporter extends JSONDirImporter {
         $this->database->insertUser($userData);
 
         $this->log->addInfo('Import successful: ' . $this->currentFile);
-        rename($this->currentFilePath, $this->config->getValue('dirs', 'temp', true) . 'user/' . $this->currentFile);
+        rename($this->currentFilePath, $this->config->getUsersDir() . $this->currentFile);
         $this->total++;
     }
 
@@ -95,7 +95,7 @@ class UserImporter extends JSONDirImporter {
     public function handleError($reason, $data = null) {
         $this->log->addWarning($reason);
         if (!is_null($this->currentFilePath)) {
-            rename($this->currentFilePath, $this->config->getValue('dirs', 'temp', true) . 'fail/' . $this->currentFile);
+            rename($this->currentFilePath, $this->config->getUsersFailDir() . $this->currentFile);
         }
         $this->fails++;
     }
