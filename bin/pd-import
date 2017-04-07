@@ -1,6 +1,7 @@
 #!/usr/bin/env php
 <?php
 
+use Commands\CheckEnvironmentCommand;
 use Commands\SyncRemoteDirsCommand;
 use Config\Config;
 use Symfony\Component\Console\Application;
@@ -44,5 +45,6 @@ $console = new Application();
 $console->setName('Profildienst Import');
 
 $console->add(new SyncRemoteDirsCommand($container['config']));
+$console->add(new CheckEnvironmentCommand($container['validatorService']));
 
 $console->run();

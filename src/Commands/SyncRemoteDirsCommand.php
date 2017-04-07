@@ -25,8 +25,8 @@ class SyncRemoteDirsCommand extends Command {
 
     protected function configure() {
         $this->setName('config:sync')
-            ->setDescription('Syncs the configured remote dirs with the local configuration')
-            ->setHelp('Shows all differences between the configured remote dirs and the local configuration');
+            ->setDescription('Syncs the local configuration with the remote dirs')
+            ->setHelp('Shows all differences between the actual remote dirs and the local config and updates the config.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output) {

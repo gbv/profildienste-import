@@ -85,7 +85,7 @@ class ValidatorService {
 
         if ($firstRun) {
             $this->config->firstRunCompleted();
-            fprintf(STDOUT, "The environment is properly set up, you can use the importer now.\nRun the importer again to start an import.");
+            fprintf(STDOUT, "The environment is properly set up, you can use the importer now.\nRun the importer again to start an import.\n");
             exit(0);
         }
     }
@@ -188,7 +188,6 @@ class ValidatorService {
             $this->config->getValue('dirs', 'user_import'),
             $this->config->getValue('dirs', 'user_update'),
             $this->config->getValue('dirs', 'temp'),
-            $this->config->getValue('dirs', 'temp', true) . 'fail/',
             $this->config->getValue('logging', 'dir')
         ];
     }
