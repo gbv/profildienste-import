@@ -24,7 +24,9 @@ class App {
 
     public function run() {
 
-        $cmd = new Command();
+
+
+        /*$cmd = new Command();
         $this->initCommands($cmd);
 
         //check if there is a config file, otherwise create one first.
@@ -154,6 +156,6 @@ class App {
         $cmd->flag('v')
             ->aka('verbose')
             ->description('Show details')
-            ->boolean();
+            ->boolean();*/
     }
 }

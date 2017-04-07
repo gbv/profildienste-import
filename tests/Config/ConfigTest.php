@@ -39,6 +39,7 @@ class ConfigTest extends \BaseTest {
         $this->assertTrue(is_array($dbCat));
         $this->assertArrayHasKey('host', $dbCat);
         $this->assertArrayHasKey('port', $dbCat);
+        $this->assertArrayHasKey('name', $dbCat);
 
         $this->expectException(Exception::class);
         $this->config->getValue('foo');

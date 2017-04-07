@@ -19,12 +19,12 @@ abstract class BaseTest extends TestCase {
         parent::__construct();
         $this->container = new Pimple\Container();
         initContainer($this->container);
-        $this->container['logService']->setQuiet();
     }
 
     public function setUp() {
         $this->rootDir = vfsStream::setup('testRoot');
         Config::setBaseDir(vfsStream::url($this->rootDir->getName()));
+        $this->container['logService']->setQuiet();
     }
 
 }

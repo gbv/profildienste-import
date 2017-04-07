@@ -1,6 +1,6 @@
 {
   "require": {
-    "nategood/commando": "^0.2.9",
+    "symfony/console": "^3",
     "monolog/monolog": "^1",
     "phpmailer/phpmailer": "^5.2",
     "mongodb/mongodb": "^1",

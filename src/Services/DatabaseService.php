@@ -22,7 +22,7 @@ class DatabaseService {
         $this->config = $config;
 
         $this->client = new Client('mongodb://' . $config->getValue('database', 'host') . ':' . $config->getValue('database', 'port'));
-        $db = $this->client->selectDatabase('pd');
+        $db = $this->client->selectDatabase($config->getValue('database', 'name'));
 
         $this->titles = $db->selectCollection('titles');
         $this->users = $db->selectCollection('users');
@@ -35,6 +35,7 @@ class DatabaseService {
         } catch (ConnectionTimeoutException $e) {
             throw new Exception('Failed to connect to the database: ' . $e->getMessage());
         }
+        return true;
     }
 
     public function insertTitle($title) {

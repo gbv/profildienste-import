@@ -26,6 +26,7 @@ class UserImporterTest extends \BaseTest {
     ];
 
     public function setUp() {
+        parent::setUp();
         $this->userImporter = $this->container['userImporter'];
     }
 

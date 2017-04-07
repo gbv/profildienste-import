@@ -76,6 +76,7 @@ class Config {
                 'enable' => true,
                 'host' => 'cbs4.gbv.de',
                 'user' => 'cbs_ifd',
+                'base' => '/export/home/cbs_ifd/andreas/profildienst/',
                 'dirs' => []
             ],
             'dirs' => [
@@ -98,6 +99,7 @@ class Config {
             'database' => [
                 'host' => 'localhost',
                 'port' => '27017',
+                'name' => 'pd',
             ],
             'mailer' => [
                 'enable' => true,
@@ -144,11 +146,7 @@ class Config {
      */
     public function firstRunCompleted() {
         $this->config['firstrun'] = false;
-        if (!is_null($this->configFromFile)) {
-            if (file_put_contents(self::$CONFIG_FILENAME, json_encode($this->config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) === false) {
-                throw new Exception('Couldn\'t write to config file!');
-            }
-        }
+        $this->persist();
     }
 
     private function getTempSaveDir($checkForTrailingSlash = false) {
@@ -183,10 +181,10 @@ class Config {
     }
 
     public static function getConfigFilePath() {
-        return self::getBaseDir().DIRECTORY_SEPARATOR.self::$CONFIG_FILENAME;
+        return self::getBaseDir() . DIRECTORY_SEPARATOR . self::$CONFIG_FILENAME;
     }
 
-    public static function createConfigFile(){
+    public static function createConfigFile() {
 
         if (file_exists(self::getConfigFilePath())) {
             throw new Exception('A configuration file exists already');
@@ -202,6 +200,65 @@ class Config {
         }
 
         return true;
+    }
+
+    /**
+     * Adds a directory to the list of remote dirs
+     *
+     * @param $dir string Directory to add
+     * @throws Exception
+     */
+    public function addRemoteDir($dir) {
+        // TODO: Test
+        if (!$this->getValue('remote', 'enable')) {
+            throw new Exception('The remote fetching feature is disabled!');
+        }
+
+        if (is_null($dir) || !is_string($dir)) {
+            throw new Exception('The provided dir is invalid!');
+        }
+
+        $this->config['remote']['dirs'][] = $dir;
+        $this->persist();
+    }
+
+    /**
+     * Removes a directory to the list of remote dirs
+     *
+     * @param $dir string Directory to add
+     * @throws Exception
+     */
+    public function removeRemoteDir($dir) {
+        // TODO: Test
+        if (!$this->getValue('remote', 'enable')) {
+            throw new Exception('The remote fetching feature is disabled!');
+        }
+
+        if (is_null($dir) || !is_string($dir)) {
+            throw new Exception('The provided dir is invalid!');
+        }
+
+        $index = array_search($dir, $this->config['remote']['dirs']);
+
+        if ($index === false) {
+            throw new Exception('The specified directory does not exist in the config');
+        }
+
+        array_splice($this->config['remote']['dirs'],$index, 1);
+        $this->persist();
+    }
+
+    /**
+     * This function will persist the current configuration if the initial configuration was loaded from a file.
+     *
+     * @throws Exception
+     */
+    private function persist() {
+        if (!is_null($this->configFromFile)) {
+            if (file_put_contents(self::getConfigFilePath(), json_encode($this->config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)) === false) {
+                throw new Exception('Couldn\'t write to config file!');
+            }
+        }
     }
 
 }

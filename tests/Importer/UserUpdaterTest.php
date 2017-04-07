@@ -9,6 +9,7 @@ class UserUpdaterTest extends \BaseTest {
     private $userUpdater;
 
     public function setUp() {
+        parent::setUp();
         $this->userUpdater = $this->container['userUpdater'];
     }
 

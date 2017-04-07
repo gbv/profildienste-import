@@ -1,31 +1,48 @@
 #!/usr/bin/env php
 <?php
 
+use Commands\SyncRemoteDirsCommand;
 use Config\Config;
-use Config\ConfigCreator;
-use Cover\Amazon;
-use Util\Database;
-use Util\Log;
-use Util\Mailer;
-use Util\Validator;
+use Symfony\Component\Console\Application;
 
-if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
-    require __DIR__ . '/../vendor/autoload.php';
-} elseif (file_exists(__DIR__ . '/../../../autoload.php')) {
-    require __DIR__ . '/../../../autoload.php';
-} else {
-    fwrite(STDERR, 'ERROR: Composer dependencies not properly set up! Run "composer install" or see README.md for more details' . PHP_EOL);
+function searchAndRequire($file, $maxDepth = 3) {
+    $path = __DIR__ . DIRECTORY_SEPARATOR;
+    for ($i = 0; $i <= $maxDepth; $i++) {
+        if (file_exists($path.$file)) {
+            require $path . $file;
+            return;
+        }
+        $path .= '..' . DIRECTORY_SEPARATOR;
+    }
+
+    fwrite(STDERR, 'ERROR: The project is not set up properly! Please consult the README.' . PHP_EOL);
     exit(1);
 }
 
-require '../bootstrap/init.php';
+searchAndRequire('vendor/autoload.php');
+searchAndRequire('../bootstrap/init.php');
 
 // init the DI container
 $container = new Pimple\Container();
 initContainer($container);
 
+//check if there is a config file, otherwise create one first.
+if (!file_exists(Config::getConfigFilePath())) {
+    Config::createConfigFile();
+    fprintf(STDOUT, "A configuration file template has been copied to %s.\nPlease review the configuration to make sure it can be used.\n", Config::getConfigFilePath());
+    return;
+}
+
+/*
 try {
     (new App($container))->run();
 }catch(Exception $e) {
     fprintf(STDERR, "ERROR: %s\n", $e->getMessage());
-}
+}*/
+
+$console = new Application();
+$console->setName('Profildienst Import');
+
+$console->add(new SyncRemoteDirsCommand($container['config']));
+
+$console->run();
