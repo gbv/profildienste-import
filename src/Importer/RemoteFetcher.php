@@ -35,21 +35,11 @@ class RemoteFetcher extends Importer {
     }
 
     /**
-     * Returns the total amount of processed records
+     * Further describes the purpose of the importer.
      *
-     * @return int total amount
+     * @return string Description
      */
-    public function getTotal() {
-        return 0;
-    }
-
-    /**
-     * Returns the number of records which could not be
-     * imported.
-     *
-     * @return int failed records
-     */
-    public function getFails() {
-        return 0;
+    public function getDescription() {
+        return 'Remote fetcher produces no stats';
     }
 }

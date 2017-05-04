@@ -2,6 +2,7 @@
 
 namespace Services;
 
+use Config\CheckResult;
 use Config\Config;
 use Exception;
 use Util\Util;
@@ -66,28 +67,7 @@ class ValidatorService {
         // cover check
         // TODO: Cover Check
 
-        if ($errorsOccurred) {
-
-            $errors = $this->logService->getLoggedErrors();
-
-            // show all errors in a readable list
-            $consoleErrorList = join("\n", array_map(function ($r) {
-                return "\t * " . $r;
-            }, $errors));
-
-            // try to send a mail if there was at least one valid email address
-            if ($this->config->getValue('logging', 'enable_mail') && count($this->validLogMails) > 0) {
-                $this->mailer->sendErrorMail($this->validLogMails, $errors);
-            }
-
-            throw new Exception("The environment is not set up properly. Please fix the following errors to use the importer: \n" . $consoleErrorList);
-        }
-
-        if ($firstRun) {
-            $this->config->firstRunCompleted();
-            fprintf(STDOUT, "The environment is properly set up, you can use the importer now.\nRun the importer again to start an import.\n");
-            exit(0);
-        }
+        return new CheckResult(!$errorsOccurred, $this->logService->getLoggedErrors());
     }
 
     /**
@@ -226,6 +206,9 @@ class ValidatorService {
      * @return bool true if all exist
      */
     public function checkLocalDirs() {
+
+        $errorsOccurred = false;
+
         foreach ($this->getRequiredDirs() as $dir) {
             $logMessage = "Checking " . $dir . "... ";
             if (is_dir($dir)) {
@@ -234,10 +217,10 @@ class ValidatorService {
             } else {
                 $logMessage .= "Missing or not a directory!";
                 $this->log->addError($logMessage);
-                return false;
+                $errorsOccurred = true;
             }
         }
-        return true;
+        return !$errorsOccurred;
     }
 
     /**

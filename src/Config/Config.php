@@ -209,7 +209,7 @@ class Config {
      * @throws Exception
      */
     public function addRemoteDir($dir) {
-        // TODO: Test
+
         if (!$this->getValue('remote', 'enable')) {
             throw new Exception('The remote fetching feature is disabled!');
         }
@@ -229,7 +229,7 @@ class Config {
      * @throws Exception
      */
     public function removeRemoteDir($dir) {
-        // TODO: Test
+
         if (!$this->getValue('remote', 'enable')) {
             throw new Exception('The remote fetching feature is disabled!');
         }

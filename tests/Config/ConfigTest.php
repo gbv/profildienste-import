@@ -12,8 +12,8 @@ class ConfigTest extends \BaseTest {
      */
     private $config;
 
-    public function __construct() {
-        parent::__construct();
+    public function setUp() {
+        parent::setUp();
         $this->config = $this->container['config'];
     }
 
@@ -67,4 +67,38 @@ class ConfigTest extends \BaseTest {
         $dir = $this->config->getUsersFailDir();
         $this->assertDirectoryExists($dir);
     }
+
+    public function testAddRemoteDir() {
+        $this->assertCount(0, $this->config->getValue('remote', 'dirs'));
+
+        $this->config->addRemoteDir('foo');
+
+        $this->assertCount(1, $this->config->getValue('remote', 'dirs'));
+
+        $remoteDir = $this->config->getValue('remote', 'dirs')[0];
+        $this->assertEquals('foo', $remoteDir);
+
+        $this->expectException(Exception::class);
+        $this->config->addRemoteDir(123);
+
+        $this->expectException(Exception::class);
+        $this->config->addRemoteDir(null);
+    }
+
+    public function testRemoveRemoteDir() {
+
+        $this->assertCount(0, $this->config->getValue('remote', 'dirs'));
+        $this->config->addRemoteDir('foo');
+        $this->assertCount(1, $this->config->getValue('remote', 'dirs'));
+
+        $this->config->removeRemoteDir('foo');
+        $this->assertCount(0, $this->config->getValue('remote', 'dirs'));
+
+        $this->expectException(Exception::class);
+        $this->config->removeRemoteDir(null);
+
+        $this->expectException(Exception::class);
+        $this->config->removeRemoteDir('foo');
+    }
+
 }

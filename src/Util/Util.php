@@ -28,16 +28,7 @@ class Util {
     }
 
     public static function format($val) {
-        return ($val >= 0) ? $val : '-';
-    }
-
-    public static function getFormattedStat($arr, $key, $sub) {
-        if (array_key_exists($key, $arr)) {
-            if (array_key_exists($sub, $arr[$key])) {
-                return Util::format($arr[$key][$sub]);
-            }
-        }
-        return '-';
+        return ($val > 0) ? $val : '-';
     }
 
     public static function createDir($path) {

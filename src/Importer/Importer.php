@@ -6,6 +6,7 @@ use Config\Config;
 use Monolog\Logger;
 use Services\LogService;
 use Services\DatabaseService;
+use Services\StatsService;
 
 /**
  * Interface Importer
@@ -28,17 +29,23 @@ abstract class Importer{
     /**
      * @var DatabaseService
      */
-    protected $database;
+    protected $databaseService;
+
+    /**
+     * @var StatsService
+     */
+    protected $statsService;
 
     /**
      * @var Logger log
      */
     protected $log;
 
-    public function __construct(Config $config, LogService $logService, DatabaseService $databaseService){
+    public function __construct(Config $config, LogService $logService, DatabaseService $databaseService, StatsService $statsService){
         $this->config = $config;
         $this->logService = $logService;
-        $this->database = $databaseService;
+        $this->databaseService = $databaseService;
+        $this->statsService = $statsService;
 
         $this->log = $this->logService->getLog();
     }
@@ -51,18 +58,19 @@ abstract class Importer{
     public abstract function run();
 
     /**
-     * Returns the total amount of processed records
+     * Returns the canonical name of the importer
      *
-     * @return int total amount
+     * @return string Name to identify the importer
      */
-    public abstract function getTotal();
+    public function getName() {
+        return get_class($this);
+    }
 
     /**
-     * Returns the number of records which could not be
-     * imported.
+     * Further describes the purpose of the importer.
      *
-     * @return int failed records
+     * @return string Description
      */
-    public abstract function getFails();
+    public abstract function getDescription();
 
 }

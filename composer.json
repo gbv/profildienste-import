@@ -2,10 +2,11 @@
   "require": {
     "symfony/console": "^3",
     "monolog/monolog": "^1",
-    "phpmailer/phpmailer": "^5.2",
+    "nette/mail": "^2",
     "mongodb/mongodb": "^1",
     "pimple/pimple": "^3.0",
-    "rebuy/ean-isbn-library": "^1"
+    "rebuy/ean-isbn-library": "^1",
+    "twig/twig": "^2"
   },
   "autoload": {
     "psr-0": {

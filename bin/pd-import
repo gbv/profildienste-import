@@ -2,30 +2,52 @@
 <?php
 
 use Commands\CheckEnvironmentCommand;
+use Commands\FullImportImportCommand;
 use Commands\SyncRemoteDirsCommand;
 use Config\Config;
 use Symfony\Component\Console\Application;
 
+const VERSION = '1.2.0';
+
 function searchAndRequire($file, $maxDepth = 3) {
+
     $path = __DIR__ . DIRECTORY_SEPARATOR;
     for ($i = 0; $i <= $maxDepth; $i++) {
-        if (file_exists($path.$file)) {
+        echo "CHECKING ".($path . $file)."\n";
+        if (file_exists($path . $file)) {
             require $path . $file;
             return;
         }
         $path .= '..' . DIRECTORY_SEPARATOR;
     }
 
-    fwrite(STDERR, 'ERROR: The project is not set up properly! Please consult the README.' . PHP_EOL);
+    fwrite(STDERR, 'ERROR: The project is not properly set up! Please consult the README.' . PHP_EOL);
     exit(1);
 }
 
+function getVersion() {
+
+    $commitDate = new \DateTime(trim(exec('git log -n1 --pretty=%ci HEAD')));
+    $commitDate->setTimezone(new \DateTimeZone('UTC'));
+
+    return sprintf('v%s-dev.%s (%s)',
+        VERSION,
+        trim(exec('git log --pretty="%h" -n1 HEAD')),
+        $commitDate->format('d-m-Y H:m:s')
+    );
+}
+
+var_dump(Phar::running());
+var_dump(dirname(__DIR__));
+
 searchAndRequire('vendor/autoload.php');
-searchAndRequire('../bootstrap/init.php');
+searchAndRequire('bootstrap/init.php');
 
 // init the DI container
-$container = new Pimple\Container();
-initContainer($container);
+$c = new Pimple\Container();
+initContainer($c);
+$c['resourceFolder'] = dirname(__DIR__).DIRECTORY_SEPARATOR.'resources';
+var_dump($c['resourceFolder']);
 
 //check if there is a config file, otherwise create one first.
 if (!file_exists(Config::getConfigFilePath())) {
@@ -34,17 +56,14 @@ if (!file_exists(Config::getConfigFilePath())) {
     return;
 }
 
-/*
-try {
-    (new App($container))->run();
-}catch(Exception $e) {
-    fprintf(STDERR, "ERROR: %s\n", $e->getMessage());
-}*/
-
 $console = new Application();
 $console->setName('Profildienst Import');
+$console->setVersion(getVersion());
 
-$console->add(new SyncRemoteDirsCommand($container['config']));
-$console->add(new CheckEnvironmentCommand($container['validatorService']));
+$console->add(new SyncRemoteDirsCommand($c['config']));
+$console->add(new CheckEnvironmentCommand($c['validatorService'], $c['config']));
+
+$console->add(new FullImportImportCommand($c['logService'], $c['mailerService']));
+$console->add(new \Commands\UserImportCommand($c['logService'], $c['mailerService'], $c['userImporter']));
 
 $console->run();

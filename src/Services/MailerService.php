@@ -4,7 +4,6 @@ namespace Services;
 
 use Config\Config;
 use Monolog\Logger;
-use PHPMailer;
 use Util\Util;
 
 class MailerService {
@@ -22,13 +21,19 @@ class MailerService {
     private $config;
 
     /**
+     * @var StatsService
+     */
+    private $statsService;
+
+    /**
      * @var Logger
      */
     private $log;
 
-    public function __construct(LogService $logService, Config $config) {
+    public function __construct(LogService $logService, Config $config, StatsService $statsService) {
         $this->logService = $logService;
         $this->config = $config;
+        $this->statsService = $statsService;
 
         $this->log = $this->logService->getLog();
     }
@@ -80,27 +85,28 @@ class MailerService {
         }
     }
 
-    public function sendReportMail($stats) {
+    public function sendReportMail() {
 
-        $fails = 0;
-        $total = 0;
+        $total = array_reduce(array_values($this->statsService->getStats()), function ($carry, $stat){
+            return $carry + $stat['total'];
+        }, 0);
 
-        foreach(array_values($stats) as $stat){
-            $fails += $stat['fails'];
-            $total += $stat['total'];
-        }
-
-        if ($total > 0 || $fails > 0) {
+        if ($total > 0) {
 
             $msg = "Summary: \n";
+
+            foreach ($this->statsService->getStats() as $importer => $stats) {
+                $msg .= sprintf('%s : Total: %d, Failed: %d)\n', $importer, Util::format($stats['total']), Util::format($stats['failed']));
+            }
+            /*
             $msg .= "Imported titles: " . Util::getFormattedStat($stats, 'import-titles', 'total') . " (failed: " . Util::getFormattedStat($stats, 'import-titles', 'fails') . ")\n";
             $msg .= "Updated titles: " . Util::getFormattedStat($stats, 'update-titles', 'total') . " (failed: " . Util::getFormattedStat($stats, 'update-titles', 'fails') . ")\n";
             $msg .= "\n";
             $msg .= "Imported users: " . Util::getFormattedStat($stats, 'import-users', 'total') . " (failed: " . Util::getFormattedStat($stats, 'import-users', 'fails') . ")\n";
             $msg .= "Updated users: " . Util::getFormattedStat($stats, 'update-users', 'total') . " (failed: " . Util::getFormattedStat($stats, 'update-users', 'fails') . ")\n";
-            $msg .= "\n";
+            $msg .= "\n";*/
             // TODO
-            $msg .= "Covers checked: " . 0 . " (without a cover: " . 0 . ")\n";
+            //$msg .= "Covers checked: " . 0 . " (without a cover: " . 0 . ")\n";
 
 
             $mail = new PHPMailer();
@@ -113,13 +119,14 @@ class MailerService {
                 $mail->addAddress($email);
             }
 
+            /*
             if (filesize($this->logService->getLogPath()) < $this->config->getValue('logging', 'max_mailsize')) {
                 $mail->addAttachment($this->logService->getLogPath(), 'Log.log');
             } else {
                 $msg .= "\n";
                 $msg .= "A log file has been generated, but it is too big to be attached.";
                 $msg .= "It can be found here: " . $this->logService->getLogPath() . "\n";
-            }
+            }*/
 
 
             $mail->Subject = 'Import finished!';

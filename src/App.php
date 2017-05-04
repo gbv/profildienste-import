@@ -38,6 +38,33 @@ class App {
 
         $this->validator->checkEnvironment();
 
+        -----------
+        TODO: Pasted here from the end of ValidatorService
+
+                if ($errorsOccurred) {
+
+            $errors =
+
+            // show all errors in a readable list
+            $consoleErrorList = join("\n", array_map(function ($r) {
+                return "\t * " . $r;
+            }, $errors));
+
+            // try to send a mail if there was at least one valid email address
+            if ($this->config->getValue('logging', 'enable_mail') && count($this->validLogMails) > 0) {
+                $this->mailer->sendErrorMail($this->validLogMails, $errors);
+            }
+
+            throw new Exception("The environment is not set up properly. Please fix the following errors to use the importer: \n" . $consoleErrorList);
+        }
+
+        if ($firstRun) {
+            $this->config->firstRunCompleted();
+            fprintf(STDOUT, "The environment is properly set up, you can use the importer now.\nRun the importer again to start an import.\n");
+            exit(0);
+        }
+        --------
+
         $this->log->addInfo(print_r($cmd->getFlagValues(), true));
         $importers = $this->getSelectedImportingSteps($cmd);
 

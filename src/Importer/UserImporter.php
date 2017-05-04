@@ -78,11 +78,11 @@ class UserImporter extends JSONDirImporter {
             'defaults' => $data['defaults']
         ];
 
-        $this->database->insertUser($userData);
+        $this->databaseService->insertUser($userData);
 
         $this->log->addInfo('Import successful: ' . $this->currentFile);
         rename($this->currentFilePath, $this->config->getUsersDir() . $this->currentFile);
-        $this->total++;
+        $this->statsService->recordSuccessfulHandling($this);
     }
 
     /**
@@ -97,6 +97,15 @@ class UserImporter extends JSONDirImporter {
         if (!is_null($this->currentFilePath)) {
             rename($this->currentFilePath, $this->config->getUsersFailDir() . $this->currentFile);
         }
-        $this->fails++;
+        $this->statsService->recordFailedHandling($this);
+    }
+
+    /**
+     * Further describes the purpose of the importer.
+     *
+     * @return string Description
+     */
+    public function getDescription() {
+        return '';
     }
 }

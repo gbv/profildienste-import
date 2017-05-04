@@ -2,6 +2,7 @@
 namespace Importer;
 
 
+use Services\StatsService;
 use Util\Util;
 use Config\Config;
 use Services\LogService;
@@ -21,15 +22,11 @@ abstract class JSONDirImporter extends Importer {
 
     protected $dir;
 
-    protected $total;
-
-    protected $fails;
-
     protected $currentFile;
     protected $currentFilePath;
 
-    public function __construct(Config $config, LogService $logService, DatabaseService $databaseService, string $dir) {
-        parent::__construct($config, $logService, $databaseService);
+    public function __construct(Config $config, LogService $logService, DatabaseService $databaseService, StatsService $statsService, string $dir) {
+        parent::__construct($config, $logService, $databaseService, $statsService);
         $this->dir = $dir;
     }
 
@@ -59,7 +56,6 @@ abstract class JSONDirImporter extends Importer {
                 $this->currentFile = $file;
                 $this->currentFilePath = $f;
 
-                $this->total++;
                 $d = json_decode(file_get_contents($f), true);
                 if (is_null($d)) {
                     $this->handleError($f . ' is not a valid json file');
@@ -108,12 +104,4 @@ abstract class JSONDirImporter extends Importer {
      * handling the files.
      */
     protected function afterHandling () { }
-
-    public function getFails() {
-        return $this->fails;
-    }
-
-    public function getTotal() {
-        return $this->total;
-    }
 }

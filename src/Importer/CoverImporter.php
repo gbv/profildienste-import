@@ -5,6 +5,7 @@ use Config\Config;
 use Services\LogService;
 use Cover\CoverProvider;
 use Services\DatabaseService;
+use Services\StatsService;
 
 /**
  * Class CoverImporter
@@ -19,14 +20,9 @@ class CoverImporter extends Importer {
     private $coverProvider;
 
     /**
-     * @var int Stores how many titles have been checked for covers
+     * @var StatsService
      */
-    private $checked = 0;
-
-    /**
-     * @var int Amount of titles without a cover
-     */
-    private $withoutCover = 0;
+    private $statsService;
 
     /**
      * CoverImporter constructor.
@@ -34,46 +30,37 @@ class CoverImporter extends Importer {
      * @param LogService $logService
      * @param DatabaseService $databaseService
      * @param CoverProvider $coverProvider
+     * @param StatsService $statsService
      */
-    public function __construct(Config $config, LogService $logService, DatabaseService $databaseService, CoverProvider $coverProvider) {
-        parent::__construct($config, $logService, $databaseService);
+    public function __construct(Config $config, LogService $logService, DatabaseService $databaseService, CoverProvider $coverProvider, StatsService $statsService) {
+        parent::__construct($config, $logService, $databaseService, $statsService);
         $this->coverProvider = $coverProvider;
     }
 
     public function run() {
 
-        $cursor = $this->database->findTitlesWithNoCover();
+        $cursor = $this->databaseService->findTitlesWithNoCover();
 
         foreach ($cursor as $d) {
-
-            $this->checked++;
 
             $covers = $this->coverProvider->getCovers($d);
 
             if (!$covers) {
-                $this->withoutCover++;
+                $this->statsService->recordFailedHandling($this);
+            } else {
+                $this->statsService->recordSuccessfulHandling($this);
             }
 
-            $this->database->updateCover($d, $covers);
+            $this->databaseService->updateCover($d, $covers);
         }
     }
 
     /**
-     * Returns the total amount of processed records
+     * Further describes the purpose of the importer.
      *
-     * @return int total amount
+     * @return string Description
      */
-    public function getTotal() {
-        return $this->checked;
-    }
-
-    /**
-     * Returns the number of records which could not be
-     * imported.
-     *
-     * @return int failed records
-     */
-    public function getFails() {
-        return $this->withoutCover;
+    public function getDescription() {
+        return 'Cover Importer (Fails indicate that no covers were found)';
     }
 }

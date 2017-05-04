@@ -4,6 +4,7 @@ namespace Services;
 
 use Config\Config;
 use Monolog\Handler\NullHandler;
+use Monolog\Handler\RotatingFileHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 
@@ -28,11 +29,13 @@ class LogService {
         });
 
         if (is_dir($config->getValue('logging', 'dir', true))) {
-            $this->logPath = $config->getValue('logging', 'dir', true) . 'Import_' . date('d-m-y_H-i-s') . '.log';
-            $this->log->pushHandler(new StreamHandler($this->logPath, Logger::INFO));
+            $this->logPath = $config->getValue('logging', 'dir', true) . 'Import';
+            $handler = new RotatingFileHandler($this->logPath, 7 ,Logger::INFO);
+            $this->log->pushHandler($handler);
         } else {
             $this->setVerbose();
         }
+        
     }
 
     public function setVerbose() {
