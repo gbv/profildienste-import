@@ -47,7 +47,7 @@ class DatabaseService {
     }
 
     public function updateCover($title, $cover) {
-        $this->titles->updateOne(['_id' => $title['_id']],
+        $this->titles->updateMany(['004A.A' => $title['004A']['A']],
             ['$set' => ['XX02' => $cover]]
         );
     }
@@ -79,8 +79,8 @@ class DatabaseService {
         );
     }
 
-    public function findTitlesWithNoCover() {
-        return $this->titles->find(['XX02' => null]);
+    public function findTitleWithNoCover() {
+        return $this->titles->findOne(['$and' => [['XX02' => null], ['004A' => ['$ne' => null]]]]);
     }
 
     public function userExists($id) {

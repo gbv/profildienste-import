@@ -37,6 +37,8 @@ abstract class JSONDirImporter extends Importer {
      */
     public function run() {
 
+        $this->statsService->init($this);
+
         if (empty($this->dir)) {
             $this->log->addError('No import directory specified!');
             return;

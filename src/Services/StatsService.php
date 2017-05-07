@@ -17,13 +17,13 @@ class StatsService {
     private $stats = [];
 
     public function recordFailedHandling(Importer $importer) {
-        $this->initCategory($importer);
+        $this->init($importer);
         $this->stats[$importer->getName()]['failed']++;
         $this->stats[$importer->getName()]['total']++;
     }
 
     public function recordSuccessfulHandling(Importer $importer) {
-        $this->initCategory($importer);
+        $this->init($importer);
         $this->stats[$importer->getName()]['total']++;
     }
 
@@ -31,7 +31,7 @@ class StatsService {
         return $this->stats;
     }
 
-    private function initCategory(Importer $importer) {
+    public function init(Importer $importer) {
         if (!isset($this->stats[$importer->getName()])) {
             $this->stats[$importer->getName()] = [
                 'failed' => 0,

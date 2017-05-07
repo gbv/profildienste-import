@@ -3,8 +3,14 @@
 namespace Cover;
 
 use Config\Config;
-use Util\ISBNtest;
+use Rebuy\EanIsbn\Converter\Converter;
+use Rebuy\EanIsbn\Converter\Isbn10Converter;
+use Rebuy\EanIsbn\Identifier\Ean13;
+use Rebuy\EanIsbn\Identifier\Isbn10;
+use Rebuy\EanIsbn\Parser\Ean13Parser;
+use Rebuy\EanIsbn\Parser\Isbn10Parser;
 use Services\LogService;
+use Rebuy\EanIsbn\Parser\Parser;
 
 /**
  * Class Amazon
@@ -20,11 +26,19 @@ class Amazon implements CoverProvider  {
 
     private $log;
 
+    private $parser;
+    private $converter;
+
     public function __construct(Config $config, LogService $logService) {
         $this->config = $config;
         $this->logService = $logService;
 
         $this->log = $this->logService->getLog();
+
+        $this->parser = new Parser([new Ean13Parser(), new Isbn10Parser()]);
+        $this->converter = new Converter([
+            Ean13::class => [new Isbn10Converter()]
+        ]);
     }
 
     public function getCovers($title) {
@@ -34,27 +48,30 @@ class Amazon implements CoverProvider  {
 
         // We use the ISBN for the check since Amazons ID (ASIN)
         // is equal to the 10-digit ISBN for media etc.
-        $isbn = isset($title['004A']['A']) ? $title['004A']['A'] : NULL;
-        if (is_null($isbn)) {
-            $isbn = isset($title['004A']['0']) ? $title['004A']['0'] : NULL;
-        }
+        $isbn = isset($title['004A']['A']) ? $title['004A']['A'] : null;
 
-        $cover = NULL;
-
-        $logMessage = 'ISBN: ' . $isbn . ' ';
+        $cover = null;
 
         if (!is_null($isbn)) {
 
-            // convert the ISBN to a 10-digit ISBN
-            $isc = new ISBNtest();
-            $isc->set_isbn($isbn);
-            $logMessage .= $isc->get_isbn10() . ' ';
+            $logMessage = 'Title '.$title['_id'].' has ISBN/EAN13: ' . $isbn . ', converted to ISBN10/ASIN ';
+
+            // convert the ISBN to a 10-digit ISBN if necessary
+            $identifier = $this->parser->parse($isbn);
+
+            if (!$identifier instanceof Isbn10) {
+                $identifier = $this->converter->convert($identifier);
+            }
+
+            $logMessage .= $identifier . ' ';
 
             // get the URLs
-            $cover = $this->getImg($isc->get_isbn10());
-        }
+            $cover = $this->getImg($identifier);
 
-        $this->log->addInfo($logMessage);
+            $this->log->addInfo($logMessage);
+        } else {
+            $this->log->addInfo('Title '.$title['_id'].' has no ISBN or EAN');
+        }
 
         return is_null($cover) ? false : $cover;
     }

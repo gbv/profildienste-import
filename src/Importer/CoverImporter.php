@@ -20,11 +20,6 @@ class CoverImporter extends Importer {
     private $coverProvider;
 
     /**
-     * @var StatsService
-     */
-    private $statsService;
-
-    /**
      * CoverImporter constructor.
      * @param Config $config
      * @param LogService $logService
@@ -39,11 +34,11 @@ class CoverImporter extends Importer {
 
     public function run() {
 
-        $cursor = $this->databaseService->findTitlesWithNoCover();
+        $this->statsService->init($this);
 
-        foreach ($cursor as $d) {
+        while (!is_null(($title = $this->databaseService->findTitleWithNoCover()))) {
 
-            $covers = $this->coverProvider->getCovers($d);
+            $covers = $this->coverProvider->getCovers($title);
 
             if (!$covers) {
                 $this->statsService->recordFailedHandling($this);
@@ -51,7 +46,7 @@ class CoverImporter extends Importer {
                 $this->statsService->recordSuccessfulHandling($this);
             }
 
-            $this->databaseService->updateCover($d, $covers);
+            $this->databaseService->updateCover($title, $covers);
         }
     }
 

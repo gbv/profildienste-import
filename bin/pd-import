@@ -13,7 +13,6 @@ function searchAndRequire($file, $maxDepth = 3) {
 
     $path = __DIR__ . DIRECTORY_SEPARATOR;
     for ($i = 0; $i <= $maxDepth; $i++) {
-        echo "CHECKING ".($path . $file)."\n";
         if (file_exists($path . $file)) {
             require $path . $file;
             return;
@@ -37,17 +36,13 @@ function getVersion() {
     );
 }
 
-var_dump(Phar::running());
-var_dump(dirname(__DIR__));
-
 searchAndRequire('vendor/autoload.php');
 searchAndRequire('bootstrap/init.php');
 
 // init the DI container
 $c = new Pimple\Container();
-initContainer($c);
 $c['resourceFolder'] = dirname(__DIR__).DIRECTORY_SEPARATOR.'resources';
-var_dump($c['resourceFolder']);
+initContainer($c);
 
 //check if there is a config file, otherwise create one first.
 if (!file_exists(Config::getConfigFilePath())) {
@@ -65,5 +60,7 @@ $console->add(new CheckEnvironmentCommand($c['validatorService'], $c['config']))
 
 $console->add(new FullImportImportCommand($c['logService'], $c['mailerService']));
 $console->add(new \Commands\UserImportCommand($c['logService'], $c['mailerService'], $c['userImporter']));
+$console->add(new \Commands\UserUpdateCommand($c['logService'], $c['mailerService'], $c['userUpdater']));
+$console->add(new \Commands\CoverImportCommand($c['logService'], $c['mailerService'], $c['coverImporter']));
 
 $console->run();

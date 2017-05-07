@@ -4,6 +4,10 @@ namespace Services;
 
 use Config\Config;
 use Monolog\Logger;
+use Nette\Mail\Message;
+use Nette\Mail\SendmailMailer;
+use Twig_Environment;
+use Twig_Loader_Filesystem;
 use Util\Util;
 
 class MailerService {
@@ -30,15 +34,20 @@ class MailerService {
      */
     private $log;
 
-    public function __construct(LogService $logService, Config $config, StatsService $statsService) {
+    private $twig;
+
+    public function __construct(LogService $logService, Config $config, StatsService $statsService, string $resFolder) {
         $this->logService = $logService;
         $this->config = $config;
         $this->statsService = $statsService;
 
         $this->log = $this->logService->getLog();
+
+        $loader = new Twig_Loader_Filesystem($resFolder);
+        $this->twig = new Twig_Environment($loader);
     }
 
-
+/*
     public function addTitle($user) {
         $this->initRecord($user);
         $this->record['ID' . $user]['titles']++;
@@ -83,21 +92,25 @@ class MailerService {
                 $this->log->addInfo('Message has been sent');
             }
         }
-    }
+    }*/
 
     public function sendReportMail() {
 
-        $total = array_reduce(array_values($this->statsService->getStats()), function ($carry, $stat){
+        $stats = $this->statsService->getStats();
+
+        $total = array_reduce(array_values($stats), function ($carry, $stat){
             return $carry + $stat['total'];
         }, 0);
 
         if ($total > 0) {
 
-            $msg = "Summary: \n";
+            $failed = array_reduce(array_values($stats), function ($carry, $stat){
+                return $carry + $stat['failed'];
+            }, 0);
 
-            foreach ($this->statsService->getStats() as $importer => $stats) {
+            /*foreach ($this->statsService->getStats() as $importer => $stats) {
                 $msg .= sprintf('%s : Total: %d, Failed: %d)\n', $importer, Util::format($stats['total']), Util::format($stats['failed']));
-            }
+            }*/
             /*
             $msg .= "Imported titles: " . Util::getFormattedStat($stats, 'import-titles', 'total') . " (failed: " . Util::getFormattedStat($stats, 'import-titles', 'fails') . ")\n";
             $msg .= "Updated titles: " . Util::getFormattedStat($stats, 'update-titles', 'total') . " (failed: " . Util::getFormattedStat($stats, 'update-titles', 'fails') . ")\n";
@@ -108,36 +121,27 @@ class MailerService {
             // TODO
             //$msg .= "Covers checked: " . 0 . " (without a cover: " . 0 . ")\n";
 
+            $template = $this->twig->load('templates/reportMail.twig');
 
-            $mail = new PHPMailer();
+            $mail = new Message;
+            $mail->setFrom('Profildienst Import <import@online-profildienst.gbv.de>')
+                ->setSubject('Profildienst import report')
+                ->setHtmlBody($template->render([
+                    'failedTitles' => $failed,
+                    'stepList' => array_keys($stats),
+                    'stats' => $stats
+                ]));
 
-            $mail->From = 'import@online-profildienst.gbv.de';
-            $mail->FromName = 'Profildienst Import';
+            var_dump($stats);
 
             $emails = $this->config->getValue('logging', 'mail');
             foreach ($emails as $email) {
-                $mail->addAddress($email);
+                $mail->addTo($email);
             }
 
-            /*
-            if (filesize($this->logService->getLogPath()) < $this->config->getValue('logging', 'max_mailsize')) {
-                $mail->addAttachment($this->logService->getLogPath(), 'Log.log');
-            } else {
-                $msg .= "\n";
-                $msg .= "A log file has been generated, but it is too big to be attached.";
-                $msg .= "It can be found here: " . $this->logService->getLogPath() . "\n";
-            }*/
+            $mailer = new SendmailMailer;
+            $mailer->send($mail);
 
-
-            $mail->Subject = 'Import finished!';
-            $mail->Body = $msg;
-
-            if (!$mail->send()) {
-                $this->log->addError('Message could not be sent.');
-                $this->log->addError($mail->ErrorInfo);
-            } else {
-                $this->log->addInfo('Message has been sent');
-            }
         } else {
             $this->log->addInfo('No email sent since nothing happened.');
         }

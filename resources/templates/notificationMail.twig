@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mail</title>
+</head>
+<body>
+<style type="text/css">
+    body {
+        background-color: #eaeaea !important;
+        color: #333;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100%;
+        font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.42857;
+        -webkit-text-size-adjust: none;
+    }
+
+    #content {
+        width: 650px;
+        margin: 20px auto 50px;
+    }
+
+    #main {
+        padding: 10px;
+        background-color: white;
+        border: 1px solid #ccc;
+        text-align: justify;
+    }
+
+    #footer {
+        width: 100%;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    .footer-imprint {
+        text-align: center;
+        color: #888;
+        padding: 0;
+    }
+
+    .footer-imprint a {
+        text-decoration: none;
+        color: #0275d8;
+    }
+
+    h1 {
+        font-size: 26px;
+        font-weight: 500;
+        line-height: 1.1;
+        color: #ff6600;
+        margin: 0;
+        padding: 0;
+        margin-top: 15px;
+        margin-bottom: 5px;
+    }
+
+    .header-hr {
+        width: 100%;
+        height: 1px;
+        border-bottom: 1px solid #eee;
+    }
+
+    h2 {
+        margin: 0;
+        padding: 0;
+        color: #cc5200;
+        font-size: 20px;
+    }
+
+    .hint {
+        color: #888;
+    }
+
+    .btn-cta {
+        padding: 10px 16px;
+        font-size: 18px;
+        line-height: 1.33333;
+        border-radius: 6px;
+        color: #fff !important;
+        background-color: #f60;
+        border-color: #e65c00;
+        display: inline-block;
+        margin-bottom: 0;
+        font-weight: 400;
+        text-align: center;
+        vertical-align: middle;
+        -ms-touch-action: manipulation;
+        touch-action: manipulation;
+        cursor: pointer;
+        background-image: none;
+        border: 1px solid transparent;
+        text-decoration: none !important;
+    }
+
+    .centered-content {
+        text-align: center;
+        padding: 10px;
+    }
+
+</style>
+<div id="content">
+    <div id="main">
+        <table border="0" cellspacing="0" cellpadding="0" style="width: 100%">
+            <tbody>
+            <tr>
+                <td>
+                    <h1>Online Profildienst</h1>
+                    <div class="header-hr"></div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <p>Sehr geehrte Damen und Herren,<br>für Sie bzw. Ihre Institution wurden im Online Profildienst des
+                        GBV bereitgestellt:</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="centered-content">
+                    <h2>{{ titles }} {% if titles == 1 %} neuer {% else %} neue {% endif %} Titel</h2>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <p>Sie können sich die neuen Titel direkt in der Gesamtübersicht des Profildiensts anschauen.
+                        Nachfolgend gelangen Sie direkt zur Anmeldeseite, bei der Sie sich mit Ihrer Kennung
+                        <em>{{ id }}</em> anmelden können.</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="centered-content">
+                    <a href="http://online-profildienst.gbv.de/" class="btn-cta">Zum Online Profildienst</a>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <p class="hint">Hinweis: Diese E-Mail wurde automatisch generiert, bitte antworten Sie nicht auf
+                        diese E-Mail. Bei Fragen, Problemen oder Anregungen können Sie die Verbundzentrale direkt
+                        kontaktieren.</p>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <footer id="footer">
+        <table border="0" cellspacing="0" cellpadding="0" style="width: 100%">
+            <tbody>
+            <tr>
+                <td class="footer-imprint">Versendet durch den <a href="http://online-profildienst.gbv.de">Online
+                        Profildienst des GBV</a></td>
+            </tr>
+            <tr>
+                <td class="footer-imprint">Verbundzentrale des GBV | Platz der Göttinger Sieben 1 | 37073 Göttingen</td>
+            </tr>
+            </tbody>
+        </table>
+    </footer>
+</div>
+</body>
+</html>
