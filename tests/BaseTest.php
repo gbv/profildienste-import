@@ -18,6 +18,7 @@ abstract class BaseTest extends TestCase {
     public function __construct() {
         parent::__construct();
         $this->container = new Pimple\Container();
+        $this->container['resourceFolder'] = dirname(__DIR__).DIRECTORY_SEPARATOR.'resources';
         initContainer($this->container);
     }
 

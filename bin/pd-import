@@ -62,5 +62,5 @@ $console->add(new FullImportImportCommand($c['logService'], $c['mailerService'])
 $console->add(new \Commands\UserImportCommand($c['logService'], $c['mailerService'], $c['userImporter']));
 $console->add(new \Commands\UserUpdateCommand($c['logService'], $c['mailerService'], $c['userUpdater']));
 $console->add(new \Commands\CoverImportCommand($c['logService'], $c['mailerService'], $c['coverImporter']));
-
+$console->add(new \Commands\RemoteFetcherCommand($c['logService'], $c['mailerService'], $c['remoteFetcher'], $c['config']));
 $console->run();

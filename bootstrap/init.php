@@ -61,6 +61,11 @@ function initContainer(\Pimple\Container $container) {
             $container['statsService'], $dir);
     };
 
+    $container['remoteFetcher'] = function ($container) {
+        return new \Importer\RemoteFetcher($container['config'], $container['logService'],
+            $container['databaseService'], $container['statsService']);
+    };
+
     $container['statsService'] = function ($container) {
         return new StatsService();
     };
