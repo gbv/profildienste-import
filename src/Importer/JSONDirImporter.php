@@ -95,10 +95,9 @@ abstract class JSONDirImporter extends Importer {
      * Error handler for invalid or unparseable files.
      *
      * @param $reason
-     * @param null $data
      * @return void
      */
-    public abstract function handleError($reason, $data = null);
+    public abstract function handleError($reason);
 
     /**
      * This function will be called after handling all JSON files in the

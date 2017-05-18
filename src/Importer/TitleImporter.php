@@ -1,138 +1,120 @@
 <?php
+
 namespace Importer;
 
 use MongoDB\BSON\UTCDateTime;
-use Pimple\Container;
-use Util\Mailer;
+use Util\ValidatorUtils;
 
 /**
  * Class TitleImporter
  *
  * Imports titles from JSON files in the titles_import directory
  */
-class TitleImporter extends Importer {
+class TitleImporter extends JSONDirImporter {
+
+    use ValidatorUtils;
+
+    private $prices = 0;
+    private $recordedPrices = 0;
 
     /**
-     * @var int number of imported titles
+     * Further describes the purpose of the importer.
+     *
+     * @return string Description
      */
-    private $total = 0;
-
-    /**
-     * @var int failed imports
-     */
-    private $fails = 0;
-
-    /**
-     * @var Mailer Mailer instance
-     */
-    private $mailer;
-
-    public function __construct(Container $container) {
-        parent::__construct($container);
-        $this->mailer = $container['mailer'];
+    public function getDescription() {
+        return '';
     }
 
-    public function run() {
+    /**
+     * Checks if the dataset is valid, i.e.
+     * has a all required attributes with correct
+     * values. Has to return true if the data is valid.
+     *
+     * @param $data array dataset
+     * @return boolean Result of validation
+     */
+    public function validate($data) {
 
-        $prices = 0;
-        $count = 0;
-
-        $handle = opendir($this->config->getValue('dirs', 'title_import'));
-
-        if ($handle === false) {
-            $this->log->addError('Opening directory ' . $this->config->getValue('dirs', 'title_import') . 'failed!');
-            return;
+        if (!$this->checkField($data, '003@', '0')) {
+            $this->handleError($this->currentFile . ' has no PPN.');
+            return false;
         }
 
-        // read all JSON files from the import dir
-        while (($file = readdir($handle)) !== false) {
+        return true;
+    }
 
-            $f = $this->config->getValue('dirs', 'title_import', true) . $file;
-            if ($file !== '.' && $file !== '..' && pathinfo($f, PATHINFO_EXTENSION) === 'json') {
+    /**
+     * Handler for valid data
+     *
+     * @param $data
+     * @return void
+     */
+    public function handleData($data) {
 
-                $this->total++;
+        // initialize various meta fields
+        $fields = ['XX02', 'comment', 'ssgnr', 'selcode', 'budget', 'supplier', 'watchlist'];
+        foreach ($fields as $field) {
+            $data[$field] = null;
+        }
 
-                $d = json_decode(file_get_contents($f), true);
-                if (is_null($d)) {
-                    $this->log->addWarning($f . ' is not a valid JSON file');
-                    rename($f, $this->config->getTitlesFailDir() . $file);
-                    $this->fails++;
-                    continue;
-                }
+        $data['lastStatusChange'] = new UTCDateTime((time() * 1000));
 
-                $ppn = isset($d['003@']['0']) ? $d['003@']['0'] : NULL;
-                if (is_null($ppn)) {
-                    $this->log->addWarning($f . ' has no ID (Field 003@/0)!');
-                    rename($f, $this->config->getTitlesFailDir() . $file);
-                    $this->fails++;
-                    continue;
-                }
+        // create a title database entry for each user
+        $errorOccurred = false;
+        foreach ($data['XX01'] as $user) {
 
-                if (isset($d['004A']['f'])) {
-                    preg_match_all('/EUR (\d+.{0,1}\d{0,2})/', $d['004A']['f'], $m);
+            // the format for the id is PPN_USERID
+            $data['_id'] = $data['003@']['0'] . '_' . $user;
+            $data['user'] = $user;
 
-                    if (count($m) == 2 && count($m[1]) == 1) {
-                        $prices += floatval($m[1][0]);
-                        $count++;
-                    }
-                }
 
-                $d['XX02'] = NULL;
-
-                // create a title database entry for each user
-                $err = false;
-                foreach ($d['XX01'] as $user) {
-
-                    $d['_id'] = $ppn . '_' . $user;
-
-                    //enrich title data
-                    $d['user'] = $user;
-                    $d['status'] = 'normal';
-                    $d['comment'] = NULL;
-                    $d['ssgnr'] = NULL;
-                    $d['selcode'] = NULL;
-                    $d['budget'] = NULL;
-                    $d['supplier'] = NULL;
-                    $d['watchlist'] = NULL;
-                    $d['lastStatusChange'] = new UTCDateTime((time() * 1000));
-
-                    try {
-                        $this->databaseService->insertTitle($d);
-                        $this->log->addInfo($f . ' ok.');
-                        $this->mailer->addTitle($user);
-                    } catch (Exception $e) {
-                        $this->log->addError($e->getMessage());
-                        $err = true;
-                        $this->fails++;
-                    }
-                }
-
-                if ($err) {
-                    rename($f, $this->config->getTitlesFailDir() . $file);
-                } else {
-                    rename($f, $this->config->getTitlesDir() . $file);
-                }
+            try {
+                $this->databaseService->insertTitle($data);
+                $this->log->addInfo('Import successful for user ' . $user . ': ' . $this->currentFile);
+                $this->statsService->recordTitleImport($user);
+            } catch (\Exception $e) {
+                $this->log->addError($e->getMessage());
+                $errorOccurred = true;
             }
         }
-        closedir($handle);
 
-        // update the overall mean used for estimating unknown prices
-        $count = ($this->total - $this->fails);
-        if ($count > 0) {
+        if ($errorOccurred) {
+            $this->handleError('An error occurred while importing ' . $this->currentFile . '. See above for details.');
+        } else {
+
+            // check if the title contains price information (used for mean price calculation for unknown titles)
+            if (isset($data['004A']['f'])) {
+                preg_match_all('/EUR (\d+.{0,1}\d{0,2})/', $data['004A']['f'], $m);
+                if (count($m) === 2 && count($m[1]) === 1) {
+                    $this->prices += floatval($m[1][0]);
+                    $this->recordedPrices++;
+                }
+            }
+
+            rename($this->currentFilePath, $this->config->getTitlesDir() . $this->currentFile);
+            $this->statsService->recordSuccessfulHandling($this);
+        }
+
+    }
+
+    public function afterHandling() {
+        //update the overall mean used for estimating unknown prices
+        if ($this->recordedPrices > 0) {
 
             $cursor_price = $this->databaseService->getGlobalPrice();
             $cursor_count = $this->databaseService->getGlobalCount();
 
             if (!is_null($cursor_price) && !is_null($cursor_count)) {
 
-                $opr = $cursor_price['value'];
-                $ocnt = $cursor_count['value'];
+                $prevPrice = $cursor_price['value'];
+                $prevCount = $cursor_count['value'];
 
-                $mean = round((($opr + $prices) / ($ocnt + $count)), 2);
+                $mean = round((($prevPrice + $this->prices) / ($prevCount + $this->recordedPrices)), 2);
 
                 try {
-                    $this->databaseService->updateData('gprice', ($opr + $prices));
-                    $this->databaseService->updateData('gcount', ($ocnt + $count));
+                    $this->databaseService->updateData('gprice', ($prevPrice + $this->prices));
+                    $this->databaseService->updateData('gcount', ($prevCount + $this->recordedPrices));
                     $this->databaseService->updateData('mean', $mean);
                 } catch (\Exception $e) {
                     $this->log->addError('Error: ' . $e->getMessage());
@@ -140,32 +122,30 @@ class TitleImporter extends Importer {
 
             } else {
 
-                $mean = round(($prices / $count), 2);
+                $mean = round(($this->prices / $this->recordedPrices), 2);
 
                 try {
                     $this->databaseService->insertData(['_id' => 'mean', 'value' => $mean]);
-                    $this->databaseService->insertData(['_id' => 'gprice', 'value' => $prices]);
-                    $this->databaseService->insertData(['_id' => 'gcount', 'value' => $count]);
-                } catch (Exception $e) {
+                    $this->databaseService->insertData(['_id' => 'gprice', 'value' => $this->prices]);
+                    $this->databaseService->insertData(['_id' => 'gcount', 'value' => $this->recordedPrices]);
+                } catch (\Exception $e) {
                     $this->log->addError('Error: ' . $e->getMessage());
                 }
-
             }
-
         }
     }
 
     /**
-     * @return int total number of imported titles
+     * Error handler for invalid or unparseable files.
+     *
+     * @param $reason
+     * @return void
      */
-    public function getTotal() {
-        return $this->total;
-    }
-
-    /**
-     * @return int number of failed imports
-     */
-    public function getFails() {
-        return $this->fails;
+    public function handleError($reason) {
+        $this->log->addWarning($reason);
+        if (!is_null($this->currentFilePath)) {
+            rename($this->currentFilePath, $this->config->getTitlesFailDir() . $this->currentFile);
+        }
+        $this->statsService->recordFailedHandling($this);
     }
 }

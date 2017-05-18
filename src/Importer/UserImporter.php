@@ -1,4 +1,5 @@
 <?php
+
 namespace Importer;
 
 /**
@@ -22,30 +23,30 @@ class UserImporter extends JSONDirImporter {
     public function validate($data) {
         // check if the id field is there
         if (!$this->checkIfAllFieldsExist($data, ['id', 'isil'])) {
-            $this->handleError($this->currentFile, $this->currentFile . ' is missing id and/or isil field');
+            $this->handleError($this->currentFile . ' is missing id and/or isil field');
             return false;
         }
 
         if (!$this->checkIfAllSubfieldsExist($data, ['budgets', 'defaults', 'suppliers'])) {
-            $this->handleError($this->currentFile, $this->currentFile . ' does not contain a (valid) definition for a field');
+            $this->handleError($this->currentFile . ' does not contain a (valid) definition for a field');
             return false;
         }
 
         // check the budgets field
         if (!$this->checkNameValueListSubfield($data, 'budgets')) {
-            $this->handleError($this->currentFile, $this->currentFile . ' has an error in the budgets field.');
+            $this->handleError($this->currentFile . ' has an error in the budgets field.');
             return false;
         }
 
         // check the supplier field
         if (!$this->checkNameValueListSubfield($data, 'suppliers')) {
-            $this->handleError($this->currentFile, $this->currentFile . ' has an error in the suppliers field.');
+            $this->handleError($this->currentFile . ' has an error in the suppliers field.');
             return false;
         }
 
         // check the defaults field
         if (!$this->checkIfAllFieldsExist($data['defaults'], ['selcode', 'ssgnr'])) {
-            $this->handleError($this->currentFile, $this->currentFile . ' has an error in the defaults field.');
+            $this->handleError($this->currentFile . ' has an error in the defaults field.');
             return false;
         }
 
@@ -89,10 +90,9 @@ class UserImporter extends JSONDirImporter {
      * Error handler for invalid or unparseable files.
      *
      * @param $reason
-     * @param null $data
      * @return void
      */
-    public function handleError($reason, $data = null) {
+    public function handleError($reason) {
         $this->log->addWarning($reason);
         if (!is_null($this->currentFilePath)) {
             rename($this->currentFilePath, $this->config->getUsersFailDir() . $this->currentFile);

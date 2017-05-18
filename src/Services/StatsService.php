@@ -16,6 +16,8 @@ class StatsService {
 
     private $stats = [];
 
+    private $titleStats = [];
+
     public function recordFailedHandling(Importer $importer) {
         $this->init($importer);
         $this->stats[$importer->getName()]['failed']++;
@@ -39,6 +41,18 @@ class StatsService {
                 'total' => 0
             ];
         }
+    }
+
+    public function recordTitleImport($user) {
+        if (!isset($this->titleStats[$user])) {
+            $this->titleStats[$user] = 0;
+        }
+
+        $this->titleStats[$user]++;
+    }
+
+    public function getTitleStats() {
+        return $this->titleStats;
     }
 
 }

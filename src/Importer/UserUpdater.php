@@ -24,31 +24,31 @@ class UserUpdater extends JSONDirImporter {
 
         // check if the id field is there
         if (!$this->checkIfAllFieldsExist($data, ['id'])) {
-            $this->handleError($this->currentFile, $this->currentFile . ' is missing id field');
+            $this->handleError($this->currentFile . ' is missing id field');
             return false;
         }
 
         if (!$this->checkIfAnySubfieldExists($data, ['budgets', 'defaults', 'suppliers'])) {
-            $this->handleError($this->currentFile, $this->currentFile . ' does not contain a (valid) definition for an updateable field');
+            $this->handleError($this->currentFile . ' does not contain a (valid) definition for an updateable field');
             return false;
         }
 
         // check the budgets field
         if (isset($data['budgets']) && !$this->checkNameValueListSubfield($data, 'budgets')) {
-            $this->handleError($this->currentFile, $this->currentFile . ' has an error in the budgets field.');
+            $this->handleError($this->currentFile . ' has an error in the budgets field.');
             return false;
         }
 
         // check the supplier field
         if (isset($data['suppliers']) && !$this->checkNameValueListSubfield($data, 'suppliers')) {
-            $this->handleError($this->currentFile, $this->currentFile . ' has an error in the suppliers field.');
+            $this->handleError($this->currentFile . ' has an error in the suppliers field.');
             return false;
         }
 
         // check the defaults field
         if (isset($data['defaults'])) {
             if (!$this->checkIfAllFieldsExist($data['defaults'], ['selcode', 'ssgnr'], true)) {
-                $this->handleError($this->currentFile, $this->currentFile . ' has an error in the defaults field.');
+                $this->handleError($this->currentFile . ' has an error in the defaults field.');
                 return false;
             }
         }
@@ -83,10 +83,9 @@ class UserUpdater extends JSONDirImporter {
      * Error handler for invalid or unparseable files.
      *
      * @param $reason
-     * @param null $data
      * @return void
      */
-    public function handleError($reason, $data = null) {
+    public function handleError($reason) {
         $this->log->addWarning($reason);
         if (!is_null($this->currentFilePath)) {
             rename($this->currentFilePath, $this->config->getUsersFailDir() . $this->currentFile);

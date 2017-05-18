@@ -19,7 +19,7 @@ class DatabaseServiceTest extends \BaseTest {
 
         if (empty(getenv('TEST_DB_HOST')) || empty(getenv('TEST_DB_PORT'))
             || empty(getenv('TEST_DB_NAME'))) {
-            throw new Exception('Test DB connection information has to be provided in the test configuration');
+            throw new Exception('TitleImporterTest DB connection information has to be provided in the test configuration');
         }
 
         $dir = vfsStream::setup('dbTest');

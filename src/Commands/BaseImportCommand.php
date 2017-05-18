@@ -11,6 +11,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 
 abstract class BaseImportCommand extends Command {
@@ -44,7 +45,9 @@ abstract class BaseImportCommand extends Command {
 
         // check
         $command = $this->getApplication()->find('config:check');
-        $returnCode = $command->run(new ArrayInput([]), $output);
+        $inp = new ArrayInput([]);
+        $out = $input->hasParameterOption(['--verbose', '-v']) ? $output : new NullOutput();
+        $returnCode = $command->run($inp, $out);
 
         if ($returnCode !== 0) {
             throw new Exception('The configuration and/or the environment is not set up properly! Please check the logs and try again.');

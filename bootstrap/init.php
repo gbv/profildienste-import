@@ -3,6 +3,7 @@
 use Config\Config;
 use Cover\Amazon;
 use Importer\CoverImporter;
+use Importer\TitleImporter;
 use Importer\UserImporter;
 use Importer\UserUpdater;
 use Services\DatabaseService;
@@ -64,6 +65,12 @@ function initContainer(\Pimple\Container $container) {
     $container['remoteFetcher'] = function ($container) {
         return new \Importer\RemoteFetcher($container['config'], $container['logService'],
             $container['databaseService'], $container['statsService']);
+    };
+
+    $container['titleImporter'] = function ($container) {
+        $dir = $container['config']->getValue('dirs', 'title_import');
+        return new TitleImporter($container['config'], $container['logService'], $container['databaseService'],
+            $container['statsService'], $dir);
     };
 
     $container['statsService'] = function ($container) {
