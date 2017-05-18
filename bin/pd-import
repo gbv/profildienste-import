@@ -2,8 +2,13 @@
 <?php
 
 use Commands\CheckEnvironmentCommand;
+use Commands\CoverImportCommand;
 use Commands\FullImportImportCommand;
+use Commands\RemoteFetcherCommand;
 use Commands\SyncRemoteDirsCommand;
+use Commands\TitleImportCommand;
+use Commands\UserImportCommand;
+use Commands\UserUpdateCommand;
 use Config\Config;
 use Symfony\Component\Console\Application;
 
@@ -26,13 +31,31 @@ function searchAndRequire($file, $maxDepth = 3) {
 
 function getVersion() {
 
-    $commitDate = new \DateTime(trim(exec('git log -n1 --pretty=%ci HEAD')));
+    global $c;
+
+    $commitDate = new \DateTime(trim(exec('git log -n1 --pretty=%ci HEAD 2>/dev/null')));
     $commitDate->setTimezone(new \DateTimeZone('UTC'));
+    $commitDate = $commitDate->format('d-m-Y H:m:s');
+
+    $hash = trim(exec('git log --pretty="%h" -n1 HEAD 2>/dev/null'));
+
+    if (empty($commitDate) || empty($hash)) {
+        $versionFile = $c['resourceFolder'].DIRECTORY_SEPARATOR.'version.json';
+        if (file_exists($versionFile)) {
+            $versionInfo = json_decode(file_get_contents($versionFile), true);
+            if (!is_null($versionInfo)) {
+                $commitDate = $versionInfo['date'];
+                $hash = $versionInfo['hash'];
+            }
+        } else {
+            return '--';
+        }
+    }
 
     return sprintf('v%s-dev.%s (%s)',
         VERSION,
-        trim(exec('git log --pretty="%h" -n1 HEAD')),
-        $commitDate->format('d-m-Y H:m:s')
+        $hash,
+        $commitDate
     );
 }
 
@@ -59,8 +82,9 @@ $console->add(new SyncRemoteDirsCommand($c['config']));
 $console->add(new CheckEnvironmentCommand($c['validatorService'], $c['config']));
 
 $console->add(new FullImportImportCommand($c['logService'], $c['mailerService']));
-$console->add(new \Commands\UserImportCommand($c['logService'], $c['mailerService'], $c['userImporter']));
-$console->add(new \Commands\UserUpdateCommand($c['logService'], $c['mailerService'], $c['userUpdater']));
-$console->add(new \Commands\CoverImportCommand($c['logService'], $c['mailerService'], $c['coverImporter']));
-$console->add(new \Commands\RemoteFetcherCommand($c['logService'], $c['mailerService'], $c['remoteFetcher'], $c['config']));
+$console->add(new UserImportCommand($c['logService'], $c['mailerService'], $c['userImporter']));
+$console->add(new UserUpdateCommand($c['logService'], $c['mailerService'], $c['userUpdater']));
+$console->add(new CoverImportCommand($c['logService'], $c['mailerService'], $c['coverImporter']));
+$console->add(new RemoteFetcherCommand($c['logService'], $c['mailerService'], $c['remoteFetcher'], $c['config']));
+$console->add(new TitleImportCommand($c['logService'], $c['mailerService'], $c['titleImporter']));
 $console->run();

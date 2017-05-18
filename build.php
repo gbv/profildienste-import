@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: luca
- * Date: 05.05.17
- * Time: 00:54
- */
 
 $PHAR_NAME = basename(__DIR__).'.phar';
 $extraDirs = ['bootstrap', 'resources'];
@@ -74,6 +68,12 @@ foreach ($extraDirs as $extra) {
     }
 }
 
+logInfo('Persisting version information');
+$version = getVersionInfo();
+if (!is_null($version)) {
+    $phar->addFromString('resources/version.json', json_encode($version));
+}
+
 logInfo('Build finished!');
 
 function logInfo($msg) {
@@ -82,4 +82,20 @@ function logInfo($msg) {
 
 function logError($msg) {
     fprintf(STDERR, "[ERR] %s \n", $msg);
+}
+
+function getVersionInfo() {
+
+    $commitDate = new \DateTime(trim(exec('git log -n1 --pretty=%ci HEAD 2>/dev/null')));
+    $commitDate->setTimezone(new \DateTimeZone('UTC'));
+    $hash = trim(exec('git log --pretty="%h" -n1 HEAD 2>/dev/null'));
+
+    if (empty($commitDate) || empty($hash)) {
+        return null;
+    }
+
+    return [
+        'date' => $commitDate->format('d-m-Y H:m:s'),
+        'hash' => $hash
+    ];
 }
