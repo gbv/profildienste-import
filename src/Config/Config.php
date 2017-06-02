@@ -62,6 +62,9 @@ class Config {
             }
 
             $this->config = Util::array_merge_recursive_distinct($this->config, $this->configFromFile);
+
+            // exclude mailer settings from merging (always use the version from the config file)
+            $this->config['mailer'] = $this->configFromFile['mailer'];
         }
     }
 

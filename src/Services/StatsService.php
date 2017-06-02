@@ -44,6 +44,7 @@ class StatsService {
     }
 
     public function recordTitleImport($user) {
+        $user = (string) $user;
         if (!isset($this->titleStats[$user])) {
             $this->titleStats[$user] = 0;
         }

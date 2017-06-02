@@ -31,5 +31,6 @@ class TitleImportCommand extends BaseImportCommand {
 
     protected function executeImport(InputInterface $input, OutputInterface $output) {
         $this->titleImporter->run();
+        $this->mailerService->sendUserNotificationMails();
     }
 }

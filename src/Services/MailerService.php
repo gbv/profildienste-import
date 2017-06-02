@@ -12,8 +12,6 @@ use Util\Util;
 
 class MailerService {
 
-    private $record = [];
-
     /**
      * @var LogService
      */
@@ -47,53 +45,46 @@ class MailerService {
         $this->twig = new Twig_Environment($loader);
     }
 
-/*
-    public function addTitle($user) {
-        $this->initRecord($user);
-        $this->record['ID' . $user]['titles']++;
-    }
+    public function sendUserNotificationMails(){
 
-    private function initRecord($user) {
-        if (!isset($this->record['ID' . $user])) {
-            $this->record['ID' . $user] = [
-                'titles' => 0
-            ];
+        if (!$this->config->getValue('mailer', 'enable')) {
+            // notification mailing feature is disabled in this case
+            return;
         }
-    }
 
-    public function sendUserNotificationMail($user, $email) {
+        $tStats = $this->statsService->getTitleStats();
 
-        if (isset($this->record['ID' . $user])) {
+        if (count(array_keys($tStats)) > 0) {
 
-            $r = $this->record['ID' . $user];
+            $mapping = $this->config->getValue('mailer', 'mapping');
 
-            $msg = "Sehr geehrte Damen und Herren,\n\n";
-            $msg .= "fuer Sie bzw. Ihre Institution wurden im Online Profildienst des GBV bereitgestellt: \n";
-            $msg .= "\n";
-            $msg .= ">\t" . $r['titles'] . " Titel\n";
-            $msg .= "\n";
-            $msg .= "\n---\n";
-            $msg .= "\nDiese E-Mail wurde automatisch generiert, bitte antworten Sie nicht auf diese E-Mail.\n";
+            $mailer = new SendmailMailer;
+            $template = $this->twig->load('templates/notificationMail.twig');
 
-            $mail = new \PHPMailer();
+            $filteredStats = array_filter($tStats, function ($stat) use ($mapping){
+                return isset($mapping[$stat]);
+            }, ARRAY_FILTER_USE_KEY);
 
-            $mail->From = 'import@online-profildienst.gbv.de';
-            $mail->FromName = 'Profildienst Import';
-            $mail->addAddress($email);
+            foreach ($filteredStats as $user => $titles) {
 
+                $mail = new Message;
+                $mail->setFrom('Profildienst Import <import@online-profildienst.gbv.de>')
+                    ->setSubject('Neuen Daten im Online Profildienst')
+                    ->setHtmlBody($template->render([
+                        'titles' => $titles,
+                        'id' => $user
+                    ]));
 
-            $mail->Subject = 'Neuen Daten im Online Profildienst';
-            $mail->Body = $msg;
+                foreach ($mapping[$user] as $email) {
+                    $mail->addTo($email);
+                }
 
-            if (!$mail->send()) {
-                $this->log->addError('Message could not be sent.');
-                $this->log->addError($mail->ErrorInfo);
-            } else {
-                $this->log->addInfo('Message has been sent');
+                $mailer->send($mail);
+                $this->log->addInfo('Notification e-mail sent for user '.$user);
             }
         }
-    }*/
-
+    }
+    
     public function sendReportMail() {
 
         $stats = $this->statsService->getStats();
@@ -108,19 +99,6 @@ class MailerService {
                 return $carry + $stat['failed'];
             }, 0);
 
-            /*foreach ($this->statsService->getStats() as $importer => $stats) {
-                $msg .= sprintf('%s : Total: %d, Failed: %d)\n', $importer, Util::format($stats['total']), Util::format($stats['failed']));
-            }*/
-            /*
-            $msg .= "Imported titles: " . Util::getFormattedStat($stats, 'import-titles', 'total') . " (failed: " . Util::getFormattedStat($stats, 'import-titles', 'fails') . ")\n";
-            $msg .= "Updated titles: " . Util::getFormattedStat($stats, 'update-titles', 'total') . " (failed: " . Util::getFormattedStat($stats, 'update-titles', 'fails') . ")\n";
-            $msg .= "\n";
-            $msg .= "Imported users: " . Util::getFormattedStat($stats, 'import-users', 'total') . " (failed: " . Util::getFormattedStat($stats, 'import-users', 'fails') . ")\n";
-            $msg .= "Updated users: " . Util::getFormattedStat($stats, 'update-users', 'total') . " (failed: " . Util::getFormattedStat($stats, 'update-users', 'fails') . ")\n";
-            $msg .= "\n";*/
-            // TODO
-            //$msg .= "Covers checked: " . 0 . " (without a cover: " . 0 . ")\n";
-
             $template = $this->twig->load('templates/reportMail.twig');
 
             $mail = new Message;
@@ -131,8 +109,6 @@ class MailerService {
                     'stepList' => array_keys($stats),
                     'stats' => $stats
                 ]));
-
-            var_dump($stats);
 
             $emails = $this->config->getValue('logging', 'mail');
             foreach ($emails as $email) {
