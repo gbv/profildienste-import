@@ -84,7 +84,7 @@ class MailerService {
             }
         }
     }
-    
+
     public function sendReportMail() {
 
         $stats = $this->statsService->getStats();
