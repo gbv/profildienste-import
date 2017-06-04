@@ -11,7 +11,7 @@ use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Question\Question;
 
 /**
- * Class ListMappingsCommand
+ * Class AddMappingCommand
  *
  * Adds a mappings to the configuration
  *

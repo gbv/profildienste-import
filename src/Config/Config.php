@@ -251,6 +251,16 @@ class Config {
         $this->persist();
     }
 
+    /**
+     * Adds a mapping to the config. If the provided e-mail already exists for the user,
+     * no changes will be made. If no mapping has previously been stored for the user,
+     * a new entry containing the corresponding e-mail address will be inserted, otherwise
+     * the e-mail will be appended to the list of e-mail addresses.
+     *
+     * @param $userId
+     * @param $email
+     * @throws Exception
+     */
     public function addMapping($userId, $email) {
         if (!$this->getValue('mailer', 'enable')) {
             throw new Exception('The mailer feature is disabled!');
@@ -264,6 +274,29 @@ class Config {
             }
         } else {
             $mapping[$userId] = [$email];
+        }
+
+        $this->config['mailer']['mapping'] = $mapping;
+        $this->persist();
+    }
+
+    /**
+     * Sets the mappings for user with userId to emails.
+     * @param $userId
+     * @param array $emails
+     * @throws Exception
+     */
+    public function updateMapping($userId, array $emails) {
+        if (!$this->getValue('mailer', 'enable')) {
+            throw new Exception('The mailer feature is disabled!');
+        }
+
+        $mapping = $this->getValue('mailer', 'mapping');
+
+        if (count($emails) === 0) {
+            unset($mapping[$userId]);
+        } else {
+            $mapping[$userId] = $emails;
         }
 
         $this->config['mailer']['mapping'] = $mapping;

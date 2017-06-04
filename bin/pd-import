@@ -4,6 +4,7 @@
 use Commands\AddMappingCommand;
 use Commands\CheckEnvironmentCommand;
 use Commands\CoverImportCommand;
+use Commands\DeleteMappingCommand;
 use Commands\FullImportImportCommand;
 use Commands\ListMappingsCommand;
 use Commands\RemoteFetcherCommand;
@@ -84,6 +85,7 @@ $console->add(new SyncRemoteDirsCommand($c['config']));
 $console->add(new CheckEnvironmentCommand($c['validatorService'], $c['config']));
 $console->add(new ListMappingsCommand($c['config']));
 $console->add(new AddMappingCommand($c['config'], $c['databaseService']));
+$console->add(new DeleteMappingCommand($c['config']));
 
 $console->add(new FullImportImportCommand($c['logService'], $c['mailerService']));
 $console->add(new UserImportCommand($c['logService'], $c['mailerService'], $c['userImporter']));

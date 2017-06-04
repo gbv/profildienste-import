@@ -41,7 +41,7 @@ class ListMappingsCommand extends Command {
         $mappings = $this->config->getValue('mailer', 'mapping');
         $tableData = [];
         foreach ($mappings as $id => $emails) {
-            $tableData[] = [$id, join(',', $emails)];
+            $tableData[] = [$id, join(', ', $emails)];
         }
 
         $table = new Table($output);
