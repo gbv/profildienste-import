@@ -2,8 +2,10 @@
 
 namespace Commands;
 
+use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class FullImportImportCommand extends BaseImportCommand {
@@ -19,11 +21,11 @@ class FullImportImportCommand extends BaseImportCommand {
             'description' => 'Runs the title importing step',
             'command' => 'import:titles'
         ],
-        [
+        /*[
             'name' => 'update-titles',
             'description' => 'Runs the title updating step',
             'command' => 'update:titles'
-        ],
+        ],*/
         [
             'name' => 'import-users',
             'description' => 'Runs the user importing step',
@@ -66,6 +68,17 @@ class FullImportImportCommand extends BaseImportCommand {
             $selectedImporters = array_map(function ($imp) { return $imp['name']; }, $this->availableImporters);
         }
 
-        var_dump($selectedImporters);
+        $selectedImportersCommands = array_filter($this->availableImporters, function($imp) use ($selectedImporters){
+            return in_array($imp['name'], $selectedImporters);
+        });
+
+        $selectedImportersCommands = array_map(function ($imp) {return $imp['command']; }, $selectedImportersCommands);
+
+        foreach ($selectedImportersCommands as $importer) {
+            $command = $this->getApplication()->find($importer);
+            $inp = new ArrayInput(['--no-mails']);
+            $out = $input->hasParameterOption(['--verbose', '-v']) ? $output : new NullOutput();
+            $command->run($inp, $out);
+        }
     }
 }
