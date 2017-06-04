@@ -25,7 +25,7 @@ class ListMappingsCommand extends Command {
     }
 
     protected function configure() {
-        $this->setName('config:list-mappings')
+        $this->setName('config:mapping-list')
             ->setDescription('Lists all ID <-> E-mail mappings from the configuration');
     }
 

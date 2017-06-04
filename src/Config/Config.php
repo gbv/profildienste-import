@@ -251,6 +251,25 @@ class Config {
         $this->persist();
     }
 
+    public function addMapping($userId, $email) {
+        if (!$this->getValue('mailer', 'enable')) {
+            throw new Exception('The mailer feature is disabled!');
+        }
+
+        $mapping = $this->getValue('mailer', 'mapping');
+
+        if (isset($mapping[$userId])) {
+            if (!array_search($email, $mapping[$userId])) {
+                $mapping[$userId][] = $email;
+            }
+        } else {
+            $mapping[$userId] = [$email];
+        }
+
+        $this->config['mailer']['mapping'] = $mapping;
+        $this->persist();
+    }
+
     /**
      * This function will persist the current configuration if the initial configuration was loaded from a file.
      *
